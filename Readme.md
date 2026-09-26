@@ -20,9 +20,9 @@ Web-Based-ML-Model-Evaluator/
 ├── README.md
 │
 └── deliverable-1/
-    ├── 01_SRS.pdf
-    ├── 02_Test_Plan.pdf
-    ├── 03_Architecture_and_Design.pdf
+    ├── 01_SRS.md
+    ├── 02_Test_Plan.md
+    ├── 03_Architecture_and_Design.md
     │
     └── uml/
         ├── use_case.png
