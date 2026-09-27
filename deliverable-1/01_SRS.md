@@ -126,6 +126,8 @@ Requirements are written to be clear, unambiguous, concise, testable, and measur
 | FR-16 | The system shall prevent evaluation from starting when mandatory inputs are missing or invalid. |
 | FR-17 | The system shall isolate uploaded artifacts from the application source/configuration files and shall use temporary storage for evaluation inputs where persistent storage is not required. |
 | FR-18 | The system shall record an evaluation identifier and basic evaluation metadata sufficient to associate a result with its submitted inputs during the active evaluation session. |
+| FR-19 | The system shall return a not-found error when a status, result, or download request references an unknown evaluation identifier. |
+| FR-20 | The system shall reject a result download request for an evaluation that has not reached the completed status. |
 
 ### 3.2 Non-Functional Requirements
 

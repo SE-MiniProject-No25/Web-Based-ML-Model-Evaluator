@@ -77,14 +77,19 @@ Model-training correctness is outside scope because the system evaluates already
 
 Test data shall include:
 
+- reference classification and regression models in each supported model format;
 - valid classification dataset;
 - valid regression dataset;
 - missing-target dataset;
 - malformed CSV;
+- malformed (corrupted or truncated) model file;
 - unsupported file;
-- oversized file;
+- files exactly at and one byte above the configured size limit;
+- file with a path-like filename (e.g. `../../evil.csv`);
 - invalid task type;
-- deterministic model/dataset pair with known expected metrics.
+- incompatible model/dataset pair (dataset features do not match the model);
+- deterministic model/dataset pair with known expected metrics;
+- unknown evaluation identifier.
 
 ---
 
@@ -96,11 +101,11 @@ Each test case specifies:
 
 - test ID;
 - related requirement(s);
+- test type;
 - preconditions;
 - test data;
 - steps;
-- expected result;
-- pass/fail criterion.
+- expected result, which is the pass criterion for the case under the pass/fail rules in Section 4.4.
 
 ### 3.1 Functional Coverage
 
@@ -133,7 +138,8 @@ At minimum, tests shall cover:
 - oversized file;
 - incompatible model/dataset;
 - evaluation failure;
-- unavailable result identifier.
+- unavailable result identifier;
+- result download requested before evaluation completion.
 
 ---
 
@@ -225,21 +231,23 @@ A representative user shall attempt the primary workflow without developer assis
 | FR-01 | Model upload | TC-01 | Web UI, API, Validation |
 | FR-02 | Dataset upload | TC-02 | Web UI, API, Validation |
 | FR-03 | File validation | TC-03, TC-04 | Validation, Security Policy |
-| FR-04 | Validation errors | TC-03, TC-05, TC-16 | Validation, API Error Handler |
-| FR-05 | Target selection | TC-05 | Web UI, Validation |
+| FR-04 | Validation errors | TC-03, TC-04, TC-14, TC-16, TC-23 | Validation, API Error Handler |
+| FR-05 | Target selection | TC-05, TC-08, TC-09 | Web UI, Validation |
 | FR-06 | Task selection | TC-06, TC-08, TC-09 | Web UI, Validation |
 | FR-07 | Target exists | TC-05 | Validation |
 | FR-08 | Execute model | TC-08, TC-09, TC-11 | Evaluation Service |
 | FR-09 | Calculate metrics | TC-08, TC-09, TC-20 | Metrics Service |
 | FR-10 | Classification metrics | TC-08 | Metrics Service |
 | FR-11 | Regression metrics | TC-09 | Metrics Service |
-| FR-12 | Evaluation status | TC-10, TC-22 | API, Evaluation, Result |
+| FR-12 | Evaluation status | TC-10, TC-11, TC-22 | API, Evaluation, Result |
 | FR-13 | Display results | TC-10 | Web UI, Result Service |
 | FR-14 | Evaluation errors | TC-11, TC-16 | API Error Handler |
 | FR-15 | Download results | TC-12 | Result Service, Web UI |
 | FR-16 | Prevent invalid evaluation | TC-07 | UI, API, Validation |
 | FR-17 | Isolated temporary artifacts | TC-13, TC-18 | Storage |
 | FR-18 | Evaluation metadata/ID | TC-22 | Result Service |
+| FR-19 | Unknown evaluation ID | TC-24 | API, Result Service |
+| FR-20 | Download before completion | TC-25 | API, Result Service |
 | NFR-01 | Usability | TC-21 | Web UI |
 | NFR-02 | 2-second acknowledgement | TC-19 | API |
 | NFR-03 | Deterministic metrics | TC-20 | Metrics/Evaluation |
@@ -249,10 +257,10 @@ A representative user shall attempt the primary workflow without developer assis
 | NFR-07 | Authentication when enabled | TC-17 | Auth Middleware |
 | NFR-08 | Traceable status | TC-10, TC-22 | Result Service |
 | NFR-09 | Modular architecture | Architecture Review | Layered Components |
-| NFR-10 | Security validation | TC-03, TC-04, TC-13–TC-18 | Security Policy, Validation |
+| NFR-10 | Security validation | TC-03, TC-04, TC-13–TC-18, TC-23 | Security Policy, Validation |
 | SEC-01 | File/type/size validation | TC-03, TC-04 | Validation |
 | SEC-02 | Controlled storage path | TC-13 | Temporary Storage |
-| SEC-03 | Reject malformed artifacts | TC-14 | Validation |
+| SEC-03 | Reject malformed artifacts | TC-14, TC-23 | Validation |
 | SEC-04 | Resource limits | TC-15 | Evaluation + Security Policy |
 | SEC-05 | No sensitive error disclosure | TC-16 | API Error Handler |
 | SEC-06 | Authentication | TC-17 | Auth Middleware |
@@ -263,29 +271,32 @@ A representative user shall attempt the primary workflow without developer assis
 
 ## 8. Detailed Test Cases
 
-| ID | Requirement(s) | Type | Preconditions | Test Steps | Expected Result |
-|---|---|---|---|---|---|
-| TC-01 | FR-01 | Functional | Application is running | Upload a supported model file | Model is accepted and shown as ready for evaluation |
-| TC-02 | FR-02 | Functional | Application is running | Upload a valid CSV dataset | Dataset is accepted and its available columns are shown |
-| TC-03 | FR-03, SEC-01 | Security/Functional | Application is running | Upload an unsupported file type | File is rejected before evaluation and a clear validation error is shown |
-| TC-04 | FR-03, NFR-06, SEC-01 | Boundary/Security | Upload limit is configured | Upload a file larger than the configured maximum | Upload is rejected and evaluation does not start |
-| TC-05 | FR-05, FR-07, SEC-08 | Functional/Security | Valid dataset uploaded | Select a target column that does not exist | Configuration is rejected and evaluation cannot start |
-| TC-06 | FR-06, SEC-08 | Functional/Security | Valid inputs uploaded | Submit an unsupported/invalid task type through the API | Server rejects the request with a defined validation error |
-| TC-07 | FR-16 | Functional | Application is running | Click Evaluate without required model/dataset/configuration | Evaluation does not start and missing inputs are identified |
-| TC-08 | FR-08, FR-09, FR-10 | Functional | Valid classification model/dataset | Select classification and run evaluation | Evaluation completes and accuracy, precision, recall and F1 are reported where applicable |
-| TC-09 | FR-08, FR-11 | Functional | Valid regression model/dataset | Select regression and run evaluation | Evaluation completes and MAE, MSE, RMSE and R² are reported |
-| TC-10 | FR-12, FR-13 | Functional | Valid evaluation submitted | Observe status and completed result | Status transitions through the defined lifecycle and result is displayed |
-| TC-11 | FR-14 | Negative | Evaluation is configured to fail, e.g. incompatible input | Run evaluation | Status becomes failed and a safe, user-readable error is shown |
-| TC-12 | FR-15 | Functional | Evaluation completed | Select Download Result | Structured result file is returned/downloaded |
-| TC-13 | FR-17, SEC-02 | Security | Upload endpoint available | Upload file with path-like/malicious filename | Server uses a controlled storage name/path and does not write outside allowed storage |
-| TC-14 | SEC-03 | Security | Upload endpoint available | Submit malformed model artifact | Artifact is rejected before model execution |
-| TC-15 | SEC-04 | Security | Resource limits configured | Submit an evaluation exceeding configured resource/time limits | Request is stopped/rejected according to the configured policy |
-| TC-16 | SEC-05, NFR-05 | Security | Trigger a server-side validation/runtime error | Inspect API response | Response contains safe error code/message and no raw trace, secret, or server path |
-| TC-17 | SEC-06, NFR-07 | Security | Authentication is enabled | Call protected evaluation/result endpoint without credentials | Request is rejected as unauthenticated |
-| TC-18 | SEC-07 | Security | Evaluation lifecycle completed | Inspect temporary storage according to policy | Temporary artifacts are removed according to configured retention policy |
-| TC-19 | NFR-02 | Performance | Valid evaluation endpoint available | Send 10 valid evaluation requests and measure acknowledgement time | Each acknowledgement meets the defined 2-second target under normal local conditions |
-| TC-20 | NFR-03 | Non-functional | Deterministic reference model/dataset available | Run identical evaluation three times | Metric outputs are identical, subject to documented model nondeterminism |
-| TC-21 | NFR-01 | Usability | Fresh test user | Ask user to perform upload → configure → evaluate → inspect result | User can identify primary controls without developer assistance |
-| TC-22 | NFR-08, FR-18 | Functional | Valid evaluation submitted | Inspect evaluation identifier and terminal state | Evaluation has a unique identifier and reaches completed or failed status |
+| ID | Requirement(s) | Type | Preconditions | Test Data | Test Steps | Expected Result |
+|---|---|---|---|---|---|---|
+| TC-01 | FR-01 | Functional | Application is running | Reference classification model | Upload a supported model file | Model is accepted and shown as ready for evaluation |
+| TC-02 | FR-02 | Functional | Application is running | Valid classification dataset | Upload a valid CSV dataset | Dataset is accepted and its available columns are shown |
+| TC-03 | FR-03, FR-04, NFR-04, NFR-10, SEC-01 | Security/Functional | Application is running | Unsupported file (e.g. `.exe`) | Upload an unsupported file type | File is rejected before evaluation and a clear validation error is shown |
+| TC-04 | FR-03, FR-04, NFR-06, NFR-10, SEC-01 | Boundary/Security | Upload limit is configured | Files exactly at and one byte above the configured size limit | Upload the file at the limit, then the file one byte above it | The file at the limit is accepted; the larger file is rejected with a clear size-limit error and evaluation does not start |
+| TC-05 | FR-05, FR-07, SEC-08 | Functional/Security | Valid dataset uploaded | Missing-target dataset | Submit a target column that does not exist in the dataset (e.g. through the API) | Configuration is rejected and evaluation cannot start |
+| TC-06 | FR-06, SEC-08 | Functional/Security | Valid inputs uploaded | Invalid task type (e.g. `clustering`) | Submit an unsupported/invalid task type through the API | Server rejects the request with a defined validation error |
+| TC-07 | FR-16 | Functional | Application is running | None (empty submission) | Click Evaluate without required model/dataset/configuration | Evaluation does not start and missing inputs are identified |
+| TC-08 | FR-05, FR-06, FR-08, FR-09, FR-10 | Functional | Valid classification model/dataset | Deterministic classification model/dataset pair with known expected metrics | Select classification and the target column, then run evaluation | Evaluation completes and accuracy, precision, recall and F1 are reported where applicable and match the expected values |
+| TC-09 | FR-05, FR-06, FR-08, FR-09, FR-11 | Functional | Valid regression model/dataset | Deterministic regression model/dataset pair with known expected metrics | Select regression and the target column, then run evaluation | Evaluation completes and MAE, MSE, RMSE and R² are reported and match the expected values |
+| TC-10 | FR-12, FR-13, NFR-08 | Functional | Valid evaluation submitted | Valid classification model/dataset | Observe status and completed result | Status transitions through the defined lifecycle and result is displayed |
+| TC-11 | FR-08, FR-12, FR-14 | Negative | Evaluation is configured to fail, e.g. incompatible input | Incompatible model/dataset pair | Run evaluation | Status becomes failed and a safe, user-readable error is shown |
+| TC-12 | FR-15 | Functional | Evaluation completed | Completed evaluation (e.g. from TC-08) | Select Download Result | Structured result file is returned/downloaded |
+| TC-13 | FR-17, NFR-10, SEC-02 | Security | Upload endpoint available | File with a path-like filename | Upload file with path-like/malicious filename | Server uses a controlled storage name/path and does not write outside allowed storage |
+| TC-14 | FR-04, NFR-10, SEC-03 | Security | Upload endpoint available | Malformed model file | Submit malformed model artifact | Artifact is rejected before model execution and a clear validation error is shown |
+| TC-15 | NFR-10, SEC-04 | Security | Resource limits configured | Model/dataset pair that exceeds the configured time or memory limit | Submit an evaluation exceeding configured resource/time limits | Request is stopped/rejected according to the configured policy |
+| TC-16 | FR-04, FR-14, NFR-05, NFR-10, SEC-05 | Security | Application is running | Malformed CSV; incompatible model/dataset pair | Trigger a server-side validation error and a runtime evaluation error; inspect each API response | Each response contains a safe error code/message and no raw trace, secret, or server path |
+| TC-17 | NFR-07, NFR-10, SEC-06 | Security | Authentication is enabled | Request without credentials | Call protected evaluation/result endpoint without credentials | Request is rejected as unauthenticated |
+| TC-18 | FR-17, NFR-10, SEC-07 | Security | Evaluation lifecycle completed | Completed evaluation | Inspect temporary storage according to policy | Temporary artifacts are removed according to configured retention policy |
+| TC-19 | NFR-02 | Performance | Valid evaluation endpoint available | Valid classification model/dataset | Send 10 valid evaluation requests and measure acknowledgement time | Each acknowledgement meets the defined 2-second target under normal local conditions |
+| TC-20 | FR-09, NFR-03 | Non-functional | Deterministic reference model/dataset available | Deterministic model/dataset pair with known expected metrics | Run identical evaluation three times | Metric outputs are identical, subject to documented model nondeterminism |
+| TC-21 | NFR-01 | Usability | Fresh test user | Valid classification model/dataset | Ask user to perform upload → configure → evaluate → inspect result | User can identify primary controls without developer assistance |
+| TC-22 | FR-12, FR-18, NFR-08 | Functional | Valid evaluation submitted | Valid classification model/dataset | Inspect evaluation identifier and terminal state | Evaluation has a unique identifier and reaches completed or failed status |
+| TC-23 | FR-04, NFR-10, SEC-03 | Security/Negative | Application is running | Malformed CSV | Submit the malformed CSV with a valid model and configuration | Dataset is rejected before model execution and a clear validation error is shown |
+| TC-24 | FR-19 | Negative | Application is running | Unknown evaluation identifier | Request the status/result and the download for the unknown identifier | Each request returns a not-found error |
+| TC-25 | FR-20 | Negative | Evaluation submitted and not yet completed | Pending or running evaluation | Request the result download before the evaluation completes | Download is rejected with a status error and no result file is returned |
 
 ---

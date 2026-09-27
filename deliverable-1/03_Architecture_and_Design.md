@@ -54,7 +54,7 @@ Validation, evaluation, and result handling are exposed as distinct internal res
 | Input Validation Service | File, schema, size, task, and target validation | FR-03–FR-07, FR-16, SEC-01, SEC-03, SEC-08 |
 | Evaluation Service | Loads supported model, prepares input, runs prediction | FR-08, FR-12, SEC-04 |
 | Metrics Service | Computes classification/regression metrics | FR-09–FR-11, NFR-03 |
-| Result Service | Formats, stores, retrieves, and exports results | FR-13, FR-15, FR-18, NFR-08 |
+| Result Service | Formats, stores, retrieves, and exports results | FR-13, FR-15, FR-18–FR-20, NFR-08 |
 | Temporary Storage | Stores uploaded artifacts/results for the active lifecycle | FR-17, SEC-02, SEC-07 |
 | Security/Policy Module | Centralizes limits, allowed values, and access checks | NFR-04, NFR-06, NFR-07, SEC-01–SEC-08 |
 
@@ -134,6 +134,7 @@ The diagram shows the browser, backend/API, validation, evaluation, metrics, res
 | FR-12 | API, Evaluation Service, Result Service |
 | FR-13–FR-15 | Web UI, Result Service |
 | FR-16–FR-18 | API, Validation, Result, Storage |
+| FR-19–FR-20 | API, Result Service |
 | NFR-01 | Web UI |
 | NFR-02–NFR-03 | API, Evaluation, Metrics |
 | NFR-04–NFR-06 | Validation, Security/Policy |
