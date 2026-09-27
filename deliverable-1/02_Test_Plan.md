@@ -6,7 +6,7 @@
 
 ### 1.1 Purpose
 
-This Test Plan defines the verification and validation approach for the Web-Based ML Model Evaluator. It covers functional behavior, non-functional properties, security validation, and traceability to the Software Requirements Specification.
+This Test Plan defines the verification and validation approach for the Web-Based ML Model Evaluator. It covers functional behavior, non-functional properties, security validation, and traceability to the [Software Requirements Specification](01_SRS.md).
 
 ### 1.2 Scope
 
@@ -90,7 +90,7 @@ Test data shall include:
 
 ## 3. Test Cases and Test Procedures
 
-The detailed cases are maintained in `04_Test_Cases.md`.
+The detailed cases are specified in [Section 8 — Detailed Test Cases](#8-detailed-test-cases).
 
 Each test case specifies:
 
@@ -202,7 +202,7 @@ NFR-03 shall be tested by executing an identical model/dataset/task/configuratio
 
 ### 5.4 Usability Validation
 
-A representative user shall attempt the primary workflow without developer assistance. The evaluator shall record whether upload, configuration, run, status, result, and download controls are identifiable.
+A representative user shall attempt the primary workflow without developer assistance. The test observer shall record whether upload, configuration, run, status, result, and download controls are identifiable.
 
 ---
 

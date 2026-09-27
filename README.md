@@ -37,14 +37,14 @@ Additional deliverables and implementation files will be added to the repository
 
 Deliverable 1 contains the following:
 
-### 1. Software Requirements Specification
+### 1. [Software Requirements Specification](deliverable-1/01_SRS.md)
 
 The SRS documents the system purpose, scope, overall description, functional and non-functional requirements, security objectives and requirements, and UML use cases.
 
-### 2. Test Plan
+### 2. [Test Plan](deliverable-1/02_Test_Plan.md)
 
 The Test Plan defines the testing strategy, test objectives, test environment, security validation, requirements traceability, and test cases covering functional and non-functional requirements.
 
-### 3. Software Architecture & Design Specification
+### 3. [Software Architecture & Design Specification](deliverable-1/03_Architecture_and_Design.md)
 
 This document describes the system architecture, architectural pattern, component structure, security architecture, UML sequence diagrams, API design, error handling, and design considerations.

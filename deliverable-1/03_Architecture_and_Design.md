@@ -8,7 +8,7 @@
 
 ### 1.1 Purpose
 
-This document defines the architecture and detailed design of the Web-Based ML Model Evaluator. It translates the requirements in the SRS into system components, interfaces, interactions, security controls, and error-handling behavior.
+This document defines the architecture and detailed design of the Web-Based ML Model Evaluator. It translates the requirements in the [SRS](01_SRS.md) into system components, interfaces, interactions, security controls, and error-handling behavior.
 
 ### 1.2 Architectural Goals
 
@@ -62,7 +62,9 @@ Validation, evaluation, and result handling are exposed as distinct internal res
 
 ## 4. Component Diagram
 
-Source: `uml/component.png`
+![UML component diagram](uml/component.png)
+
+*Source: `uml/component.png`*
 
 The diagram shows the browser, backend/API, validation, evaluation, metrics, result, and temporary storage components.
 
@@ -146,7 +148,9 @@ The diagram shows the browser, backend/API, validation, evaluation, metrics, res
 
 ## 8. Sequence Diagram — Model Evaluation
 
-Source: `/uml/sequence_evaluation.png`
+![UML sequence diagram: model evaluation](uml/sequence_evaluation.png)
+
+*Source: `uml/sequence_evaluation.png`*
 
 Main interaction:
 
@@ -158,7 +162,9 @@ The sequence covers upload/configuration validation, evaluation execution, metri
 
 ## 9. Sequence Diagram — Upload Validation
 
-Source: `docs/uml/sequence_validation.png`
+![UML sequence diagram: upload validation](uml/sequence_validation.png)
+
+*Source: `uml/sequence_validation.png`*
 
 The sequence focuses on the security-sensitive path where user-controlled files are checked before they can reach model execution.
 

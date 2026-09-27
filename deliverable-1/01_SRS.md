@@ -34,9 +34,18 @@ The system does not train models, perform automated model selection, or make a p
 | Dataset | Evaluation data supplied by the user |
 | Target | Dataset column containing the expected output |
 | Evaluator | Web application described by this SRS |
+| Evaluator/User | Person who submits a model and dataset for evaluation; the primary actor (see Section 2.3) |
 | Metric | Quantitative measure used to assess model performance |
 | FR | Functional Requirement |
 | NFR | Non-Functional Requirement |
+| SO | Security Objective |
+| SEC | Security Requirement |
+| UC | Use Case |
+| API | Application Programming Interface |
+| UI | User Interface |
+| CSV | Comma-Separated Values file |
+| MAE, MSE, RMSE | Mean Absolute Error, Mean Squared Error, Root Mean Squared Error |
+| R² | Coefficient of determination |
 
 ---
 
@@ -158,7 +167,7 @@ The backend shall expose an API for:
 - querying evaluation status/results;
 - downloading completed results.
 
-The detailed API contract is specified in the Architecture & Design Specification.
+The detailed API contract is specified in the [Architecture & Design Specification](03_Architecture_and_Design.md#10-api-design).
 
 ---
 
@@ -234,6 +243,23 @@ The detailed API contract is specified in the Architecture & Design Specificatio
 3. System verifies the evaluation exists and is completed.
 4. System returns the structured result file.
 
-Source: `uml/use_case.png`
+### Use Case Diagram
+
+![UML use case diagram](uml/use_case.png)
+
+*Source: `uml/use_case.png`*
+
+The diagram models the workflow at a finer granularity than the textual use cases above. Each diagram use case maps to them as follows:
+
+| Diagram Use Case | Textual Use Case |
+|---|---|
+| Upload ML Model | UC-01, step 2 |
+| Upload Evaluation Dataset | UC-01, step 3 |
+| Validate Inputs («include») | UC-02; UC-01, steps 4 and 6 |
+| Configure Evaluation | UC-01, step 5 |
+| Run Evaluation | UC-01, steps 7–11 |
+| View Evaluation Status | UC-01, steps 8–11 (status values per FR-12) |
+| View Results | UC-01, step 12 |
+| Download Results | UC-03; UC-01, step 13 |
 
 ---
