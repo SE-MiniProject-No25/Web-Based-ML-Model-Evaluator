@@ -1,0 +1,31 @@
+@startuml component
+skinparam componentStyle rectangle
+
+package "Client" {
+  [Web Browser / UI] as UI
+}
+
+package "Backend" {
+  [API Controller] as API
+  [Input Validation Service] as Validation
+  [Security / Policy Module] as Policy
+  [Metrics Service] as Metrics
+  [Result Service] as Result
+  [Evaluation Service] as Evaluation
+}
+
+database "Temporary Storage" as Storage
+
+UI --> API : HTTP/JSON + multipart
+API --> Validation : validate inputs
+API --> Policy : policy/access checks
+Validation --> Policy : limits / allowlists
+API --> Evaluation : validated evaluation
+API --> Result : status/results/download
+Evaluation --> Metrics : predictions + targets
+Metrics --> Result : metrics
+' norank keeps this edge from reshuffling the layout
+API -[norank]-> Storage : validated uploads
+Evaluation --> Storage : temporary artifacts
+Result --> Storage : results
+@enduml

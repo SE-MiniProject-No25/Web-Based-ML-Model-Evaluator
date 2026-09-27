@@ -1,0 +1,37 @@
+@startuml sequence_evaluation
+actor User
+participant "Web UI" as UI
+participant "API Controller" as API
+participant "Validation Service" as Validation
+participant "Evaluation Service" as Evaluation
+participant "Metrics Service" as Metrics
+participant "Result Service" as Result
+
+User -> UI : Upload model + dataset, select task + target
+UI -> API : POST /api/evaluations
+API -> Validation : validate artifacts/configuration
+Validation --> API : validation successful
+API -> Result : create evaluation ID (status: pending)
+Result --> API : evaluation ID
+API --> UI : 202 + evaluation ID
+API ->> Evaluation : start evaluation
+Evaluation -> Result : update status: running
+Evaluation -> Evaluation : load model + generate predictions
+
+alt predictions generated
+  Evaluation -> Metrics : calculate metrics (predictions, targets)
+  Metrics --> Evaluation : metric values
+  Evaluation -> Result : save result (status: completed)
+else evaluation error
+  Evaluation -> Result : save safe error (status: failed)
+end
+
+loop until status is completed or failed
+  UI -> API : GET /api/evaluations/{id}
+  API -> Result : retrieve status/result
+  Result --> API : status/result
+  API --> UI : status/result
+end
+
+UI --> User : display metrics or error
+@enduml

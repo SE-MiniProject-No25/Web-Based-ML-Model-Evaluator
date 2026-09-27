@@ -1,0 +1,30 @@
+@startuml sequence_validation
+actor User
+participant "Web UI" as UI
+participant "API Controller" as API
+participant "Security / Policy" as Policy
+participant "Validation Service" as Validation
+database "Temporary Storage" as Storage
+participant "Evaluation Service" as Evaluation
+
+User -> UI : Select model/dataset
+UI -> API : Upload artifacts
+API -> Policy : Check auth + policy
+Policy --> API : Allowed
+API -> Validation : Validate type, size, structure
+Validation -> Policy : Check limits / allowed values
+Policy --> Validation : Check result
+
+alt Valid input
+  Validation --> API : Validated artifacts
+  API -> Storage : Store with server-controlled path
+  Storage --> API : Artifact reference
+  API -> Evaluation : Pass validated reference
+  Evaluation --> API : Ready
+  API --> UI : Validation successful
+else Invalid input
+  Validation --> API : Validation error
+  API --> UI : Safe error response
+  UI --> User : Explain correction
+end
+@enduml

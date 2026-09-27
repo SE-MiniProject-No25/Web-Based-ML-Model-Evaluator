@@ -25,13 +25,19 @@ Web-Based-ML-Model-Evaluator/
     ├── 03_Architecture_and_Design.md
     │
     └── uml/
-        ├── use_case.png
-        ├── component.png
-        ├── sequence_evaluation.png
-        └── sequence_validation.png
+        ├── use_case.puml / use_case.png
+        ├── component.puml / component.png
+        ├── sequence_evaluation.puml / sequence_evaluation.png
+        └── sequence_validation.puml / sequence_validation.png
 ```
 
 Additional deliverables and implementation files will be added to the repository as the project progresses.
+
+The UML diagrams are written in [PlantUML](https://plantuml.com). After editing a `.puml` source, regenerate its image, for example with the PlantUML extension for VS Code or with:
+
+```bash
+java -jar plantuml.jar -tpng deliverable-1/uml/component.puml
+```
 
 ## Deliverable 1
 

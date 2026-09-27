@@ -1,0 +1,29 @@
+@startuml use_case
+left to right direction
+actor "Evaluator / User" as User
+
+rectangle "Web-Based ML Model Evaluator" {
+  usecase "Upload ML Model" as Upload
+  usecase "Upload Evaluation Dataset" as Dataset
+  usecase "Configure Evaluation" as Configure
+  usecase "Run Evaluation" as Run
+  usecase "View Evaluation Status" as Status
+  usecase "Download Results" as Download
+  usecase "Validate Inputs" as Validate
+  usecase "View Results" as Results
+}
+
+User --> Upload
+User --> Dataset
+User --> Configure
+User --> Run
+User --> Status
+User --> Download
+User --> Results
+
+Upload ..> Validate : <<include>>
+Dataset ..> Validate : <<include>>
+Configure ..> Validate : <<include>>
+Run ..> Validate : <<include>>
+Run ..> Results : <<include>>
+@enduml

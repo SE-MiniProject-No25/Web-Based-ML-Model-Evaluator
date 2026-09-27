@@ -73,7 +73,7 @@ The API Error Handler, Authentication Middleware, and Storage Lifecycle Manager 
 
 *Source: `uml/component.png`*
 
-The diagram shows the browser, backend/API, validation, evaluation, metrics, result, and temporary storage components.
+The diagram shows the browser, backend/API, validation, security/policy, evaluation, metrics, result, and temporary storage components.
 
 ---
 
@@ -167,6 +167,8 @@ Main interaction:
 
 The sequence covers upload/configuration validation, evaluation execution, metric calculation, result creation, and display.
 
+Evaluation runs asynchronously after the `202` response: the Evaluation Service sets the status to `running`, generates predictions, and saves either the completed result or a safe error with status `failed`, while the Web UI polls the status endpoint until the evaluation reaches a terminal status. Validation failures follow the alternative flow in Section 9.
+
 ---
 
 ## 9. Sequence Diagram — Upload Validation
@@ -176,6 +178,8 @@ The sequence covers upload/configuration validation, evaluation execution, metri
 *Source: `uml/sequence_validation.png`*
 
 The sequence focuses on the security-sensitive path where user-controlled files are checked before they can reach model execution.
+
+The `alt` fragment shows both outcomes: valid input is stored under a server-controlled path and handed to the Evaluation Service, while invalid input produces a safe error response and never reaches storage or model execution.
 
 ---
 
