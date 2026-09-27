@@ -215,7 +215,7 @@ All inputs are validated server-side before the evaluation is created (Section 9
 
 ### 10.2 GET `/api/evaluations/{evaluation_id}`
 
-Returns status and, when completed, results.
+Returns status and, when completed, results. When the evaluation has failed, the response contains the error object instead of metrics.
 
 Possible status values:
 
