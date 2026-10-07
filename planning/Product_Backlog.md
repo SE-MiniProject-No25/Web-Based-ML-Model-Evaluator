@@ -11,7 +11,10 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 |---|---|---|---|---|---|---|
 | EN-01 | Project skeleton, tech stack and CI | enabler | Adyanth | 1 | 3 | NFR-09 |
 | EN-02 | Reference test fixtures (models + datasets with known metrics) | enabler | Akshya Sivagami | 1 | 3 | FR-09, FR-10, FR-11, NFR-03 |
-| US-01 | Submit an evaluation (POST /api/evaluations) | user-story | Adyanth | 1 | 8 | FR-01, FR-02, FR-08, FR-12, FR-18, NFR-08 |
+| EN-04 | Enforce component separation (NFR-09) | enabler | Adyanth | 1 | 1 | NFR-09 |
+| EN-05 | Result Service: store and retrieve evaluations | enabler | Adyanth | 1 | 2 | FR-18, NFR-08 |
+| EN-06 | Evaluation runner: load model, predict, hand off to metrics | enabler | Adyanth | 1 | 3 | FR-08, FR-12 |
+| US-01 | Submit an evaluation (POST /api/evaluations) | user-story | Adyanth | 1 | 3 | FR-01, FR-02, FR-12 |
 | US-02 | Check status and results (GET /api/evaluations/{id}) | user-story | Adyanth | 1 | 3 | FR-12, FR-13, FR-19 |
 | US-06 | Reject unsupported and oversized files | user-story | Akash MP | 1 | 5 | FR-03, FR-04, NFR-04, NFR-06, NFR-10, SEC-01 |
 | US-07 | Reject malformed datasets and models | user-story | Akash MP | 1 | 3 | FR-04, NFR-10, SEC-03 |
@@ -21,7 +24,9 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 | US-14 | Run an evaluation and watch its status | user-story | Akshath Patil | 1 | 3 | FR-12 |
 | US-19 | Compute classification metrics | user-story | Akshya Sivagami | 1 | 3 | FR-09, FR-10 |
 | US-20 | Compute regression metrics | user-story | Akshya Sivagami | 1 | 2 | FR-09, FR-11 |
-| EN-03 | Integration, full test run and Test Report | enabler | Adyanth | 2 | 3 | — |
+| EN-03 | Integration, full test run and Test Report | enabler | Adyanth | 2 | 2 | All FR/NFR/SEC (Test Plan §4.3 and §7) |
+| EN-07 | API documentation that matches the Architecture contract | enabler | Adyanth | 2 | 2 | SRS §3.3.2 (API Interface) |
+| EN-08 | Demo script and rehearsal | enabler | Adyanth | 2 | 1 | UC-01, UC-02, UC-03 |
 | US-03 | Download results (GET /api/evaluations/{id}/download) | user-story | Adyanth | 2 | 3 | FR-15, FR-19, FR-20 |
 | US-04 | Handle failed evaluations and resource limits | user-story | Adyanth | 2 | 5 | FR-14, NFR-08, SEC-04 |
 | US-05 | Meet the 2-second acknowledgement target | test | Adyanth | 2 | 2 | NFR-02 |
@@ -35,7 +40,7 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 | US-21 | Prove metrics are deterministic | test | Akshya Sivagami | 2 | 1 | NFR-03 |
 | US-22 | Run the usability test | test | Akshya Sivagami | 2 | 1 | NFR-01 |
 
-**Total:** 76 points — Sprint 1: 42, Sprint 2: 34.
+**Total:** 79 points — Sprint 1: 43, Sprint 2: 36.
 
 ## 2. Requirement Coverage
 
@@ -50,17 +55,17 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 | FR-05 | US-13 |
 | FR-06 | US-13 |
 | FR-07 | US-08 |
-| FR-08 | US-01 |
+| FR-08 | EN-06 |
 | FR-09 | EN-02, US-19, US-20 |
 | FR-10 | EN-02, US-15, US-19 |
 | FR-11 | EN-02, US-15, US-20 |
-| FR-12 | US-01, US-02, US-14 |
+| FR-12 | EN-06, US-01, US-02, US-14 |
 | FR-13 | US-02, US-15 |
 | FR-14 | US-04, US-09, US-16 |
 | FR-15 | US-03, US-17 |
 | FR-16 | US-08, US-13 |
 | FR-17 | US-10 |
-| FR-18 | US-01 |
+| FR-18 | EN-05 |
 | FR-19 | US-02, US-03 |
 | FR-20 | US-03 |
 
@@ -75,8 +80,8 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 | NFR-05 | US-09 |
 | NFR-06 | US-06 |
 | NFR-07 | US-11 |
-| NFR-08 | US-01, US-04 |
-| NFR-09 | EN-01 |
+| NFR-08 | EN-05, US-04 |
+| NFR-09 | EN-01, EN-04 |
 | NFR-10 | US-06, US-07, US-09, US-10 |
 
 ### 2.3 Test Cases
@@ -84,16 +89,16 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 | Test case | Backlog items |
 |---|---|
 | TC-01 | US-01, US-12 (full run: EN-03) |
-| TC-02 | US-12 (full run: EN-03) |
+| TC-02 | US-01, US-12 (full run: EN-03) |
 | TC-03 | EN-02, US-06 (full run: EN-03) |
 | TC-04 | EN-02, US-06 (full run: EN-03) |
 | TC-05 | US-08 (full run: EN-03) |
 | TC-06 | US-08 (full run: EN-03) |
 | TC-07 | US-08, US-13 (full run: EN-03) |
-| TC-08 | EN-02, US-15, US-19 (full run: EN-03) |
-| TC-09 | EN-02, US-15, US-20 (full run: EN-03) |
-| TC-10 | US-02, US-14 (full run: EN-03) |
-| TC-11 | EN-02, US-04, US-16 (full run: EN-03) |
+| TC-08 | EN-02, EN-06, US-15, US-19 (full run: EN-03) |
+| TC-09 | EN-02, EN-06, US-15, US-20 (full run: EN-03) |
+| TC-10 | EN-05, US-02, US-14 (full run: EN-03) |
+| TC-11 | EN-02, EN-06, US-04, US-16 (full run: EN-03) |
 | TC-12 | US-03, US-17 (full run: EN-03) |
 | TC-13 | EN-02, US-10 (full run: EN-03) |
 | TC-14 | EN-02, US-07 (full run: EN-03) |
@@ -104,7 +109,7 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 | TC-19 | US-05 (full run: EN-03) |
 | TC-20 | EN-02, US-21 (full run: EN-03) |
 | TC-21 | US-18, US-22 (full run: EN-03) |
-| TC-22 | US-01 (full run: EN-03) |
+| TC-22 | EN-05 (full run: EN-03) |
 | TC-23 | EN-02, US-07 (full run: EN-03) |
 | TC-24 | US-02, US-03 (full run: EN-03) |
 | TC-25 | US-03 (full run: EN-03) |
@@ -126,6 +131,7 @@ Acceptance criteria:
 - A shared error type and the `{"error": {"code", "message"}}` format (Architecture §10.4) exist, so every other story uses the same errors.
 - A basic storage module saves uploads under server-generated (UUID) names in a temp directory outside the source tree; US-10 hardens it.
 - One config file holds: allowed extensions, upload size limit, evaluation time limit, retention period, auth on/off.
+- `.github/pull_request_template.md` asks for `Closes #<issue>`, the acceptance criteria covered and the test cases run.
 - GitHub Actions runs lint + `pytest` on every PR; `main` requires a PR with 1 approving review.
 - Supported model format is decided and written in the README (see Sprint Plan → Decisions).
 
@@ -147,24 +153,75 @@ Acceptance criteria:
 
 Requirements: FR-09, FR-10, FR-11, NFR-03 · Test cases: TC-03, TC-04, TC-08, TC-09, TC-11, TC-13, TC-14, TC-20, TC-23
 
+#### EN-04 — Enforce component separation (NFR-09)
+
+**Owner:** Adyanth · **Points:** 1 · **Type:** enabler · **Area:** Setup / CI / Tooling
+
+*As the team, we want the component boundaries from the Architecture document checked automatically, so that UI, API, validation, evaluation and result handling stay separate as the code grows.*
+
+Acceptance criteria:
+
+- The README has a short code map linking every backend package and frontend folder to its Architecture §3 component.
+- A pytest test fails the build if a lower layer imports an upper one (e.g. `validation`, `evaluation`, `metrics` or `results` importing from `api`, or backend code importing frontend code).
+- The check runs in the CI pipeline from EN-01.
+- It is the evidence for the NFR-09 acceptance criterion: the architecture review identifies separate components/interfaces for UI, API, validation, evaluation and result handling.
+
+Requirements: NFR-09 · Test cases: — · Depends on: EN-01
+
+> The Test Plan §7 verifies NFR-09 by architecture review; this gives that review something concrete to check.
+
+#### EN-05 — Result Service: store and retrieve evaluations
+
+**Owner:** Adyanth · **Points:** 2 · **Type:** enabler · **Area:** Backend / API / Evaluation
+
+*As the backend, we want one place that creates, updates and returns evaluation records, so that the API and the evaluation runner always agree on an evaluation's status and results.*
+
+Acceptance criteria:
+
+- `create()` stores a new record: random UUID, task type, target column, original filenames, created time, status `pending` (FR-18).
+- The status moves only `pending` → `running` → `completed` or `failed`; `completed` stores the metrics, `failed` stores a safe error object (`code`, `message`), and a finished time is recorded. A terminal status can never change (NFR-08).
+- `get(id)` returns the record, or a not-found result the API turns into `404 EVALUATION_NOT_FOUND`.
+- The store sits behind a small interface (in-memory to start) and is safe for concurrent requests.
+- Unit tests cover the lifecycle and the unknown-ID case; TC-22 passes through the API once US-01 is merged.
+
+Requirements: FR-18, NFR-08 · Test cases: TC-10, TC-22 · Depends on: EN-01
+
+> US-01, US-02, US-03 and the runner (EN-06) all build on this, so it is due early in Sprint 1.
+
+#### EN-06 — Evaluation runner: load model, predict, hand off to metrics
+
+**Owner:** Adyanth · **Points:** 3 · **Type:** enabler · **Area:** Backend / API / Evaluation
+
+*As an evaluator, I want my model to be run on my dataset in the background, so that I get predictions scored without the page freezing.*
+
+Acceptance criteria:
+
+- The runner starts as a background task after the `202`, and sets the status to `running` through the Result Service.
+- It loads the supported model file, removes the target column from the dataset, and predicts on the remaining columns (FR-08).
+- It passes the predictions and the target values to the Metrics Service (`compute(task_type, y_true, y_pred)`) and stores the metrics with status `completed` (FR-12).
+- Any exception ends the evaluation as `failed` with a generic safe error (the limits and detailed errors come in US-04).
+- Works end to end with the classification and regression fixtures from EN-02.
+
+Requirements: FR-08, FR-12 · Test cases: TC-08, TC-09, TC-11 · Depends on: EN-01, EN-05, EN-02
+
+> Stub the metrics call until US-19/US-20 land.
+
 #### US-01 — Submit an evaluation (POST /api/evaluations)
 
-**Owner:** Adyanth · **Points:** 8 · **Type:** user-story · **Area:** Backend / API / Evaluation
+**Owner:** Adyanth · **Points:** 3 · **Type:** user-story · **Area:** Backend / API / Evaluation
 
 *As an evaluator, I want to submit my model, dataset, task type and target column in one request and get an evaluation ID back straight away, so that I can follow the evaluation while it runs.*
 
 Acceptance criteria:
 
 - `POST /api/evaluations` (multipart: `model`, `dataset`, `task_type`, `target_column`) runs the Validation Service first; invalid input returns the Section 11 error and creates no evaluation.
-- Valid input returns `202` with `{"evaluation_id", "status": "pending"}`; the ID is a random UUID.
-- The evaluation runs asynchronously: `pending` → `running` → `completed` or `failed`; every evaluation reaches a terminal status (NFR-08).
-- The Evaluation Service loads the model, predicts on every dataset column except the target, and passes predictions + targets to the Metrics Service (FR-08).
-- Stored metadata: ID, task type, target column, original filenames, created/finished time, status (FR-18).
-- TC-01 and TC-22 pass as automated tests.
+- Valid input is saved through Temporary Storage, an evaluation record is created through the Result Service (EN-05), and the evaluation runner (EN-06) is started in the background.
+- The response is `202` with `{"evaluation_id", "status": "pending"}`; the ID is a random UUID.
+- TC-01 passes as an automated test.
 
-Requirements: FR-01, FR-02, FR-08, FR-12, FR-18, NFR-08 · Test cases: TC-01, TC-22 · Depends on: EN-01
+Requirements: FR-01, FR-02, FR-12 · Test cases: TC-01, TC-02 · Depends on: EN-01, EN-05
 
-> Stub the validator until US-06/07/08 land; stub metrics until US-19/20 land.
+> Stub the validator until US-06/07/08 land and the runner until EN-06 lands.
 
 #### US-02 — Check status and results (GET /api/evaluations/{id})
 
@@ -178,7 +235,7 @@ Acceptance criteria:
 - An unknown ID returns `404 EVALUATION_NOT_FOUND` (FR-19).
 - TC-10 and the status half of TC-24 pass.
 
-Requirements: FR-12, FR-13, FR-19 · Test cases: TC-10, TC-24 · Depends on: US-01
+Requirements: FR-12, FR-13, FR-19 · Test cases: TC-10, TC-24 · Depends on: EN-05
 
 #### US-06 — Reject unsupported and oversized files
 
@@ -303,7 +360,7 @@ Requirements: FR-09, FR-11 · Test cases: TC-09 · Depends on: EN-02
 
 #### EN-03 — Integration, full test run and Test Report
 
-**Owner:** Adyanth · **Points:** 3 · **Type:** enabler · **Area:** Testing & QA
+**Owner:** Adyanth · **Points:** 2 · **Type:** enabler · **Area:** Testing & QA
 
 *As the team, we want every Test Plan case executed and recorded, so that we can show each FR and NFR is met and demo with confidence.*
 
@@ -311,10 +368,43 @@ Acceptance criteria:
 
 - All 25 test cases are run; pass/fail and evidence are recorded in a Test Report.
 - Every test case that can be automated is automated in `pytest`; manual ones (e.g. TC-21) are written up.
+- The Test Plan §4.3 exit criteria are checked off: all mandatory cases executed, security cases executed, traceability complete, unresolved defects documented with severity and status.
 - The RTM and Test Plan are updated if any requirement or design detail changed during the sprints.
-- A 5-minute demo script is written and rehearsed once.
 
-Requirements: — · Test cases: TC-01..TC-25
+Requirements: All FR/NFR/SEC (Test Plan §4.3 and §7) · Test cases: TC-01..TC-25
+
+#### EN-07 — API documentation that matches the Architecture contract
+
+**Owner:** Adyanth · **Points:** 2 · **Type:** enabler · **Area:** Backend / API / Evaluation
+
+*As a frontend developer and as a marker, I want the running API documented exactly as in the Architecture document, so that I can use it without reading the backend code.*
+
+Acceptance criteria:
+
+- The running app serves interactive OpenAPI docs at `/docs` listing every endpoint, request field, response and error code from Architecture §10–11.
+- The README has a "Run and try it" section with `curl` examples for submit → status → download.
+- Any difference between the implementation and Architecture §10/§11 is fixed in the code or in the document.
+- The frontend can switch from its mock to the real API using only these docs.
+
+Requirements: SRS §3.3.2 (API Interface) · Test cases: — · Depends on: US-03, US-09
+
+> SRS §3.3.2 requires an API for uploading/validating artifacts, creating evaluations, querying status/results and downloading results; the contract is Architecture §10–11.
+
+#### EN-08 — Demo script and rehearsal
+
+**Owner:** Adyanth · **Points:** 1 · **Type:** enabler · **Area:** Testing & QA
+
+*As the team, we want a short rehearsed demo, so that we can show every key requirement working without surprises.*
+
+Acceptance criteria:
+
+- A 5-minute script covers the happy path (UC-01), a download (UC-03), one validation rejection (UC-02), one failed evaluation and one security rejection.
+- The demo data (from EN-02) and a clean environment are ready, with a backup recording or screenshots.
+- The whole team rehearses it once and each person knows which part they present.
+
+Requirements: UC-01, UC-02, UC-03 · Test cases: — · Depends on: EN-03
+
+> The use cases are defined in SRS §5.
 
 #### US-03 — Download results (GET /api/evaluations/{id}/download)
 
@@ -344,7 +434,7 @@ Acceptance criteria:
 - Any other exception ends as `failed` with `EVALUATION_FAILED`; the full traceback is logged server-side only.
 - TC-11 and TC-15 pass.
 
-Requirements: FR-14, NFR-08, SEC-04 · Test cases: TC-11, TC-15 · Depends on: US-01
+Requirements: FR-14, NFR-08, SEC-04 · Test cases: TC-11, TC-15 · Depends on: EN-06
 
 #### US-05 — Meet the 2-second acknowledgement target
 

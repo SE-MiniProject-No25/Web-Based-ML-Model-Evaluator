@@ -11,7 +11,7 @@ The work is split along the architecture's component boundaries ([Architecture �
 
 | Member | GitHub | Role | Owns (components) | Points (S1 + S2) |
 |---|---|---|---|---|
-| Adyanth | @Adyanth-212 | Team Lead / Scrum Master, Backend lead | Project setup and CI, API Controller, Evaluation Service, Result Service, integration, Test Report | 14 + 13 = **27** |
+| Adyanth | @Adyanth-212 | Team Lead / Scrum Master, Backend lead | Project setup, CI, component-separation check, API Controller, Evaluation Service, Result Service, API docs, integration, Test Report and demo | 15 + 15 = **30** |
 | Akash MP | @Akash-MP19 | Validation & Security developer | Input Validation Service, Security/Policy Module, API Error Handler, Temporary Storage, Authentication Middleware | 11 + 11 = **22** |
 | Akshath Patil | @akshathpatil353-oss | Frontend developer | Web UI (upload, configure, status, results, errors, download) | 9 + 8 = **17** |
 | Akshya Sivagami | @Akshya-Sivagami | Metrics & QA developer | Metrics Service, reference test fixtures, determinism and usability tests | 8 + 2 = **10** |
@@ -23,8 +23,8 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 **Adyanth — Team Lead / Scrum Master, Backend lead**
 - Runs sprint planning, the mid-sprint check, sprint review and retrospective; keeps the GitHub milestones and issues up to date.
 - Reviews and merges every pull request into `main`.
-- Sets up the repository skeleton and CI on day 1 so everyone can start (EN-01).
-- Builds the evaluation API and lifecycle (US-01–US-05), wires the other components together, and owns the final Test Report and demo (EN-03).
+- Sets up the repository skeleton and CI on day 1 so everyone can start (EN-01) and adds an automated check that keeps the components separate (EN-04, NFR-09).
+- Builds the Result Service and evaluation runner (EN-05, EN-06) and the evaluation API on top of them (US-01–US-05), documents the API (EN-07), wires the other components together, and owns the final Test Report and demo (EN-03, EN-08).
 
 **Akash MP — Validation & Security**
 - Makes sure nothing unsafe or invalid reaches model execution: file type/size, malformed inputs, configuration checks (US-06–US-08).
@@ -45,17 +45,20 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 
 ## 2. Sprints
 
-### Sprint 1 — Wed 7 Oct to Tue 13 Oct 2026 (42 points)
+### Sprint 1 — Wed 7 Oct to Tue 13 Oct 2026 (43 points)
 
 **Goal:** a walking skeleton. A valid classification or regression evaluation works end to end — upload → validate → run → status → metrics on screen — and unsupported, oversized or malformed files are rejected.
 
 | Adyanth | Akash MP | Akshath Patil | Akshya Sivagami |
 |---|---|---|---|
 | EN-01 Skeleton + CI (3) | US-06 File type/size (5) | US-12 Upload UI (3) | EN-02 Test fixtures (3) |
-| US-01 Submit evaluation (8) | US-07 Malformed inputs (3) | US-13 Configure UI (3) | US-19 Classification metrics (3) |
-| US-02 Status/results (3) | US-08 Config validation (3) | US-14 Run + status UI (3) | US-20 Regression metrics (2) |
+| EN-05 Result Service (2) | US-07 Malformed inputs (3) | US-13 Configure UI (3) | US-19 Classification metrics (3) |
+| EN-06 Evaluation runner (3) | US-08 Config validation (3) | US-14 Run + status UI (3) | US-20 Regression metrics (2) |
+| US-01 Submit evaluation (3) | | | |
+| US-02 Status/results (3) | | | |
+| EN-04 Component-separation check (1) | | | |
 
-### Sprint 2 — Wed 14 Oct to Tue 20 Oct 2026 (34 points)
+### Sprint 2 — Wed 14 Oct to Tue 20 Oct 2026 (36 points)
 
 **Goal:** complete and hardened. Download, failure handling, safe errors, secure storage, optional authentication, every NFR checked, and all 25 test cases executed and reported.
 
@@ -64,7 +67,9 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 | US-03 Download (3) | US-09 Safe errors (3) | US-15 Results view (3) | US-21 Determinism test (1) |
 | US-04 Failures + limits (5) | US-10 Secure storage (5) | US-16 Error display (2) | US-22 Usability test (1) |
 | US-05 2-second check (2) | US-11 Optional auth (3) | US-17 Download button (1) | |
-| EN-03 Test Report + demo (3) | | US-18 Workflow polish (2) | |
+| EN-07 API docs (2) | | US-18 Workflow polish (2) | |
+| EN-03 Integration + Test Report (2) | | | |
+| EN-08 Demo script + rehearsal (1) | | | |
 
 ---
 
@@ -114,13 +119,14 @@ An item is done only when:
 
 ```text
 EN-01 skeleton ──┬─> US-06/07/08 validation ──> US-09 safe errors
-                 ├─> US-01 submit ──> US-02 status ──> US-03 download
-                 │        └──> US-04 failures, US-05 timing, US-11 auth
+                 ├─> EN-05 Result Service ──┬─> US-01 submit ──> US-05 timing, US-11 auth
+                 │                          └─> US-02 status ──> US-03 download ──> EN-07 API docs
+                 ├─> EN-06 evaluation runner (needs EN-05, EN-02) ──> US-04 failures + limits
                  └─> US-12 upload UI ──> US-13 ──> US-14 ──> US-15/16/17/18
 EN-02 fixtures ──> US-19/20 metrics ──> US-21 determinism
 ```
 
-EN-01 and EN-02 unblock everyone, so they are due on **Thu 8 Oct**. Until the real pieces land, US-01 stubs validation and metrics, and the UI uses a mock API.
+EN-01, EN-02 and EN-05 unblock everyone, so they are due on **Thu 8 Oct**. Until the real pieces land, US-01 stubs validation and metrics, and the UI uses a mock API.
 
 ---
 
