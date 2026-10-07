@@ -19,6 +19,10 @@ Web-Based-ML-Model-Evaluator/
 │
 ├── README.md
 │
+├── planning/
+│   ├── Product_Backlog.md
+│   └── Sprint_Plan.md
+│
 └── deliverable-1/
     ├── 01_SRS.md
     ├── 02_Test_Plan.md
@@ -38,6 +42,13 @@ The UML diagrams are written in [PlantUML](https://plantuml.com). After editing 
 ```bash
 java -jar plantuml.jar -tpng deliverable-1/uml/component.puml
 ```
+
+## Project Planning
+
+Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
+
+- [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
+- [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 
 ## Deliverable 1
 
