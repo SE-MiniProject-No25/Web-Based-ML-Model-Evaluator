@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, File, Form, Request, UploadFile
 
 from app.evaluation import run_evaluation
+from app.results import format_status
 from app.validation.service import file_extension, validate_submission
 
 router = APIRouter(prefix="/api")
@@ -56,3 +57,10 @@ def submit_evaluation(
     )
     background_tasks.add_task(run_evaluation, evaluation.id, state.results)
     return {"evaluation_id": evaluation.id, "status": evaluation.status.value}
+
+
+@router.get("/evaluations/{evaluation_id}")
+def get_evaluation(evaluation_id: str, request: Request) -> dict:
+    """Current status; metrics when completed, the error object when failed (FR-12, FR-13, FR-19)."""
+    # An unknown ID raises EVALUATION_NOT_FOUND, which the error handler turns into a 404.
+    return format_status(request.app.state.results.get(evaluation_id))
