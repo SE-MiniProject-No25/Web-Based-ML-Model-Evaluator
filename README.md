@@ -21,7 +21,8 @@ Web-Based-ML-Model-Evaluator/
 │
 ├── planning/
 │   ├── Product_Backlog.md
-│   └── Sprint_Plan.md
+│   ├── Sprint_Plan.md
+│   └── burndown/
 │
 └── deliverable-1/
     ├── 01_SRS.md
@@ -49,6 +50,7 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
+- [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
 ## Deliverable 1
 
