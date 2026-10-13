@@ -7,7 +7,13 @@ US-08 (task type and target column against the dataset) extend this module;
 keep ``validate_submission`` as the single entry point the API calls.
 """
 
-from pathlib import PurePosixPath
+import csv
+import io
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
 from app.config import Settings
@@ -41,6 +47,133 @@ def _enforce_file_size(file: BinaryIO, max_bytes: int, field_name: str) -> None:
                     ErrorCode.FILE_TOO_LARGE,
                     f"The {field_name} file exceeds the maximum allowed size of {max_bytes} bytes.",
                 )
+    finally:
+        file.seek(0)
+
+
+def _validate_dataset_content(file: BinaryIO) -> None:
+    """Validate that the dataset is a non-empty, parseable, non-ragged CSV with a header (US-07)."""
+    file.seek(0)
+    try:
+        content = file.read()
+        if not content or not content.strip():
+            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is empty.")
+
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError:
+            raise AppError(
+                ErrorCode.MALFORMED_DATASET,
+                "The dataset file could not be parsed as UTF-8 text.",
+            ) from None
+
+        if "\x00" in text:
+            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file contains null bytes.")
+
+        reader = csv.reader(io.StringIO(text))
+        try:
+            header = next(reader, None)
+        except csv.Error:
+            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is malformed.") from None
+
+        if not header:
+            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is missing a header row.")
+
+        header_len = len(header)
+        try:
+            for row in reader:
+                if not row:
+                    continue
+                if len(row) != header_len:
+                    raise AppError(
+                        ErrorCode.MALFORMED_DATASET,
+                        "The dataset file contains ragged rows with inconsistent column counts.",
+                    )
+        except csv.Error:
+            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is malformed.") from None
+    finally:
+        file.seek(0)
+
+
+def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
+    """Inspect model in an isolated child process to verify it loads and has a callable predict (US-07).
+
+    Security Notice:
+    Deserializing untrusted pickle/joblib objects executes arbitrary bytecode.
+    This validation runs in a separate child process with a timeout and sanitized
+    environment to isolate the web server from memory corruption, hangs, or interpreter crashes.
+    LIMITATION: This is process isolation, not an unprivileged container sandbox.
+    """
+    file.seek(0)
+    try:
+        clean_env = {
+            "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+            "PATH": os.environ.get("PATH", ""),
+            "PYTHONHASHSEED": "0",
+        }
+        for var in ("TEMP", "TMP", "WINDIR", "USERPROFILE"):
+            if var in os.environ:
+                clean_env[var] = os.environ[var]
+
+        script_path = str(Path(__file__).resolve().parent / "model_inspector.py")
+        cmd = [sys.executable, script_path]
+
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            cwd=tempfile.gettempdir(),
+            env=clean_env,
+        )
+
+        try:
+            try:
+                chunk_size = 64 * 1024
+                total_written = 0
+                while True:
+                    chunk = file.read(chunk_size)
+                    if not chunk:
+                        break
+                    total_written += len(chunk)
+                    if total_written > settings.max_upload_bytes:
+                        raise AppError(
+                            ErrorCode.FILE_TOO_LARGE,
+                            f"The model file exceeds the limit of {settings.max_upload_bytes} bytes.",
+                        )
+                    proc.stdin.write(chunk)
+                proc.stdin.close()
+            except (BrokenPipeError, OSError):
+                # Child process exited early (e.g. invalid header, corrupted file, or crash)
+                pass
+
+            try:
+                returncode = proc.wait(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                raise AppError(
+                    ErrorCode.INVALID_MODEL,
+                    "The model file could not be loaded or is corrupted.",
+                ) from None
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
+
+        if returncode == 1:
+            raise AppError(
+                ErrorCode.INVALID_MODEL,
+                "The model file could not be loaded or is corrupted.",
+            )
+        elif returncode == 2:
+            raise AppError(
+                ErrorCode.INVALID_MODEL,
+                "The model file must have a callable predict method.",
+            )
+        elif returncode != 0:
+            raise AppError(
+                ErrorCode.INVALID_MODEL,
+                "The model file could not be loaded or is corrupted.",
+            )
     finally:
         file.seek(0)
 
@@ -84,8 +217,10 @@ def validate_submission(
 
     if model_file is not None:
         _enforce_file_size(model_file, settings.max_upload_bytes, "model")
+        _validate_model_content(model_file, settings)
     if dataset_file is not None:
         _enforce_file_size(dataset_file, settings.max_upload_bytes, "dataset")
+        _validate_dataset_content(dataset_file)
 
 
 def file_extension(filename: str) -> str:
