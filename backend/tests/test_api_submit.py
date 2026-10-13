@@ -118,12 +118,15 @@ def test_unsupported_file_type_is_rejected_and_creates_nothing(client, store, se
     assert stored_files(settings) == []
 
 
-def test_invalid_task_type_is_rejected(client, store, tmp_path):
+@pytest.mark.parametrize("invalid_task", ["clustering", "forecasting", "dimensionality_reduction"])
+def test_invalid_task_type_is_rejected(client, store, settings, tmp_path, invalid_task):
+    """TC-06: unsupported task types are rejected with 422 INVALID_TASK_TYPE."""
     model, data = write_classification_fixture(tmp_path)
-    response = post(client, model, data, task_type="clustering")
+    response = post(client, model, data, task_type=invalid_task)
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "INVALID_TASK_TYPE"
     assert store.added == 0
+    assert stored_files(settings) == []
 
 
 def test_target_column_not_in_dataset_is_rejected(client, store, settings, tmp_path):
