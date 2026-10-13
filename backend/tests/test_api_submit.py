@@ -1,4 +1,6 @@
 import io
+import pickle
+import types
 import uuid
 
 import pytest
@@ -278,5 +280,62 @@ def test_dataset_one_byte_over_size_limit_is_rejected(store, tmp_path):
     assert "dataset" in error["message"]
     assert store.added == 0
     assert stored_files(custom_settings) == []
+
+
+@pytest.mark.parametrize(
+    ("dataset_bytes", "reason"),
+    [
+        (b"", "empty-zero-bytes"),
+        (b"   \n  \t\n", "whitespace-only"),
+        (b"\xff\xfe\x00\x00not-utf8", "non-utf8-bytes"),
+        (b"a,b\n1,\x00\n", "contains-null-byte"),
+        (b"a,b,c\n1,2\n3,4,5\n", "ragged-too-few-columns"),
+        (b"a,b\n1,2\n3,4,5\n", "ragged-extra-columns"),
+    ],
+)
+def test_malformed_csv_is_rejected(client, store, settings, tmp_path, dataset_bytes, reason):
+    """TC-23: malformed, empty, unparseable, or ragged CSV files are rejected with 422 MALFORMED_DATASET."""
+    model, _ = write_classification_fixture(tmp_path)
+    response = client.post(
+        "/api/evaluations",
+        data={"task_type": "classification", "target_column": "label"},
+        files={
+            "model": ("model.joblib", model.read_bytes()),
+            "dataset": ("data.csv", dataset_bytes),
+        },
+    )
+    assert response.status_code == 422
+    error = response.json()["error"]
+    assert error["code"] == "MALFORMED_DATASET"
+    assert store.added == 0
+    assert stored_files(settings) == []
+
+
+@pytest.mark.parametrize(
+    ("model_bytes", "reason"),
+    [
+        (b"not-a-valid-pickle-file", "corrupted-bytes"),
+        (pickle.dumps({"dictionary": 123}), "dict-lacks-predict"),
+        (pickle.dumps(12345), "int-lacks-predict"),
+        (pickle.dumps(types.SimpleNamespace(predict="not_callable")), "non-callable-predict"),
+    ],
+)
+def test_malformed_model_is_rejected(client, store, settings, tmp_path, model_bytes, reason):
+    """TC-14: corrupted models or objects without callable predict are rejected with 422 INVALID_MODEL."""
+    _, data = write_classification_fixture(tmp_path)
+    response = client.post(
+        "/api/evaluations",
+        data={"task_type": "classification", "target_column": "label"},
+        files={
+            "model": ("model.joblib", model_bytes),
+            "dataset": ("data.csv", data.read_bytes()),
+        },
+    )
+    assert response.status_code == 422
+    error = response.json()["error"]
+    assert error["code"] == "INVALID_MODEL"
+    assert store.added == 0
+    assert stored_files(settings) == []
+
 
 
