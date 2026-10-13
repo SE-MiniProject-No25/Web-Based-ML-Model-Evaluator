@@ -1,10 +1,13 @@
+import io
 import uuid
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.errors import AppError, ErrorCode
 from app.main import create_app
 from app.results import InMemoryEvaluationStore, ResultService, Status
+from app.validation.service import _enforce_file_size
 from tests.helpers import write_classification_fixture, write_regression_fixture
 
 
@@ -145,3 +148,29 @@ def test_client_filenames_never_reach_the_filesystem(client, app, settings, tmp_
     record = app.state.results.get(response.json()["evaluation_id"])
     assert (record.model_filename, record.dataset_filename) == ("model.joblib", "evil.csv")
     assert not (tmp_path.parent / "evil.csv").exists()
+
+
+def test_enforce_file_size_stops_early_without_reading_entire_file():
+    """Verify size checking halts immediately upon exceeding limit and resets stream."""
+
+    class TrackingBytesIO(io.BytesIO):
+        def __init__(self, initial_bytes):
+            super().__init__(initial_bytes)
+            self.total_read = 0
+
+        def read(self, size=-1):
+            chunk = super().read(size)
+            self.total_read += len(chunk)
+            return chunk
+
+    # 1 MB of dummy data, limit is 128 KB
+    large_payload = b"X" * (1024 * 1024)
+    stream = TrackingBytesIO(large_payload)
+
+    with pytest.raises(AppError) as exc_info:
+        _enforce_file_size(stream, max_bytes=128 * 1024, field_name="model")
+
+    assert exc_info.value.code is ErrorCode.FILE_TOO_LARGE
+    assert stream.tell() == 0
+    assert stream.total_read < len(large_payload)
+
