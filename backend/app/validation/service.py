@@ -1,10 +1,10 @@
 """Input Validation Service.
 
-MINIMAL VERSION so POST /api/evaluations is safe on its own: it checks that every
-field is present, that both files have an allowed extension and that the task
-type is supported. US-06 (size limits), US-07 (malformed CSV / model files) and
-US-08 (task type and target column against the dataset) extend this module;
-keep ``validate_submission`` as the single entry point the API calls.
+Validates that all required fields are present, file extensions are allowed,
+task types are supported, uploads comply with configured size limits (US-06),
+models and datasets are well-formed (US-07), and target columns exist in the
+dataset header (US-08). Keep ``validate_submission`` as the single entry point
+called by the API.
 """
 
 import csv
@@ -51,7 +51,7 @@ def _enforce_file_size(file: BinaryIO, max_bytes: int, field_name: str) -> None:
         file.seek(0)
 
 
-def _validate_dataset_content(file: BinaryIO) -> None:
+def _validate_dataset_content(file: BinaryIO) -> list[str]:
     """Validate that the dataset is a non-empty, parseable, non-ragged CSV with a header (US-07)."""
     file.seek(0)
     try:
@@ -91,6 +91,7 @@ def _validate_dataset_content(file: BinaryIO) -> None:
                     )
         except csv.Error:
             raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is malformed.") from None
+        return header
     finally:
         file.seek(0)
 
@@ -220,7 +221,12 @@ def validate_submission(
         _validate_model_content(model_file, settings)
     if dataset_file is not None:
         _enforce_file_size(dataset_file, settings.max_upload_bytes, "dataset")
-        _validate_dataset_content(dataset_file)
+        header = _validate_dataset_content(dataset_file)
+        if target_column not in header:
+            raise AppError(
+                ErrorCode.INVALID_TARGET_COLUMN,
+                f"The selected target column '{target_column}' does not exist in the dataset.",
+            )
 
 
 def file_extension(filename: str) -> str:
