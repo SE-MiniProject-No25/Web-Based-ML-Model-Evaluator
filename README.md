@@ -56,6 +56,25 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
+## Code Map
+
+Each code folder maps to one component in [Architecture §3](deliverable-1/03_Architecture_and_Design.md#3-component-description). The boundaries are enforced by [`backend/tests/test_architecture.py`](backend/tests/test_architecture.py), which runs in CI and fails if a lower layer imports an upper one.
+
+| Code | Architecture component | May import from |
+|---|---|---|
+| [`frontend/src`](frontend/src) | Web UI (talks to the backend only through the API contract, §10) | — |
+| [`backend/app/api`](backend/app/api) | API Controller, API Error Handler, Authentication Middleware | validation, evaluation, metrics, results, storage, security |
+| [`backend/app/validation`](backend/app/validation) | Input Validation Service | security |
+| [`backend/app/evaluation`](backend/app/evaluation) | Evaluation Service | metrics, results, storage, security |
+| [`backend/app/metrics`](backend/app/metrics) | Metrics Service | — |
+| [`backend/app/results`](backend/app/results) | Result Service | — |
+| [`backend/app/storage`](backend/app/storage) | Temporary Storage (+ Storage Lifecycle Manager) | security |
+| [`backend/app/security`](backend/app/security) | Security/Policy Module | — |
+| [`backend/app/errors.py`](backend/app/errors.py), [`config.py`](backend/app/config.py) | Shared error type and settings (import no component) | — |
+| [`backend/app/main.py`](backend/app/main.py) | Composition root that wires the components together | any |
+
+Every row may also import `errors` and `config`. Backend code never imports frontend code.
+
 ## Getting Started
 
 **Tech stack:** Python 3.11+ with FastAPI, scikit-learn, pandas and joblib on the backend; React + Vite on the frontend; pytest and ruff in CI.
