@@ -38,6 +38,8 @@ def submit_evaluation(
         task_type=task_type,
         target_column=target_column,
         settings=state.settings,
+        model_file=model.file if model else None,
+        dataset_file=dataset.file if dataset else None,
     )
 
     model_path = state.storage.save(model.file, file_extension(model_name))
