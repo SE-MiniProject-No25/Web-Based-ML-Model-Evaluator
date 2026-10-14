@@ -118,12 +118,36 @@ def test_unsupported_file_type_is_rejected_and_creates_nothing(client, store, se
     assert stored_files(settings) == []
 
 
-def test_invalid_task_type_is_rejected(client, store, tmp_path):
+@pytest.mark.parametrize("invalid_task", ["clustering", "forecasting", "dimensionality_reduction"])
+def test_invalid_task_type_is_rejected(client, store, settings, tmp_path, invalid_task):
+    """TC-06: unsupported task types are rejected with 422 INVALID_TASK_TYPE."""
     model, data = write_classification_fixture(tmp_path)
-    response = post(client, model, data, task_type="clustering")
+    response = post(client, model, data, task_type=invalid_task)
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "INVALID_TASK_TYPE"
     assert store.added == 0
+    assert stored_files(settings) == []
+
+
+def test_target_column_not_in_dataset_is_rejected(client, store, settings, tmp_path):
+    """TC-05: submitting a target column not in the CSV header returns 422 INVALID_TARGET_COLUMN."""
+    model, data = write_classification_fixture(tmp_path)
+    response = post(client, model, data, target_column="nonexistent_target")
+    assert response.status_code == 422
+    error = response.json()["error"]
+    assert error["code"] == "INVALID_TARGET_COLUMN"
+    assert "nonexistent_target" in error["message"]
+    assert store.added == 0
+    assert stored_files(settings) == []
+
+
+def test_valid_target_column_in_dataset_is_accepted(client, store, settings, tmp_path):
+    """TC-05 / FR-07: a target column that exists in the CSV header is accepted."""
+    model, data = write_classification_fixture(tmp_path, target="custom_label")
+    response = post(client, model, data, target_column="custom_label")
+    assert response.status_code == 202
+    assert response.json()["status"] == "pending"
+    assert store.added == 1
 
 
 def test_error_responses_use_the_standard_format_without_internal_details(client, tmp_path):
