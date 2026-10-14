@@ -19,6 +19,10 @@ Web-Based-ML-Model-Evaluator/
 │
 ├── README.md
 │
+├── backend/            # FastAPI service, one package per architecture component
+├── frontend/           # React + Vite web UI
+├── .github/            # CI workflow and pull request template
+│
 ├── planning/
 │   ├── Product_Backlog.md
 │   ├── Sprint_Plan.md
@@ -51,6 +55,44 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
+
+## Getting Started
+
+**Tech stack:** Python 3.11+ with FastAPI, scikit-learn, pandas and joblib on the backend; React + Vite on the frontend; pytest and ruff in CI.
+
+**Backend** (from the repository root):
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload      # http://127.0.0.1:8000, docs at /docs
+```
+
+**Frontend:**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**Tests and lint:**
+
+```bash
+cd backend
+ruff check .
+pytest
+```
+
+Limits and switches (allowed extensions, upload size, evaluation time limit, retention period, authentication on/off) live in [`backend/app/config.py`](backend/app/config.py) and can be overridden with `MLEVAL_*` environment variables.
+
+### Supported model format
+
+scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded by the evaluation component after validation, and execution is time-limited (see US-04 and US-07).
+
+### Contributing
+
+Branch per issue (`feat/US-06-file-validation`), never commit to `main`, and open a pull request that says `Closes #<issue>`. See [Sprint Plan §4](planning/Sprint_Plan.md).
 
 ## Deliverable 1
 
