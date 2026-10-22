@@ -57,12 +57,22 @@ def test_regression_run_completes(service, tmp_path):
     assert seen["max_error"] < 1e-6  # the linear model reproduces its own training data
 
 
-def test_default_metrics_stub_is_used_until_the_metrics_service_lands(service, tmp_path):
+def test_default_classification_metrics_service_is_used(service, tmp_path):
     model, data = write_classification_fixture(tmp_path)
     evaluation = submit(service, "classification", model, data, "label")
-    run_evaluation(evaluation.id, service)
-    assert service.get(evaluation.id).metrics == {"samples": 60}
 
+    run_evaluation(evaluation.id, service)
+
+    metrics = service.get(evaluation.id).metrics
+
+    assert metrics == pytest.approx(
+        {
+            "accuracy": 0.95,
+            "precision": 1.0,
+            "recall": 0.8928571428571429,
+            "f1": 0.9433962264150944,
+        }
+    )
 
 def test_status_is_running_while_the_model_executes(service, tmp_path):
     model, data = write_classification_fixture(tmp_path)
