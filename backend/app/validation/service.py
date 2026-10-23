@@ -111,6 +111,10 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
             "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
             "PATH": os.environ.get("PATH", ""),
             "PYTHONHASHSEED": "0",
+            # The stripped environment hides how this interpreter finds its packages (for
+            # example pip --user installs on Windows are located through APPDATA), so hand
+            # the child exactly the import paths the server itself is using.
+            "PYTHONPATH": os.pathsep.join(p for p in sys.path if p),
         }
         for var in ("TEMP", "TMP", "WINDIR", "USERPROFILE"):
             if var in os.environ:
