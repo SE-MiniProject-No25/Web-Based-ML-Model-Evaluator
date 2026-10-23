@@ -1,4 +1,4 @@
-"""Unit tests for the Metrics Service classification behaviour (US-19)."""
+"""Unit tests for classification and regression Metrics Service behaviour."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 from app.metrics.service import compute
-from tests.generate_fixtures import CLASSIFICATION_DIR
+from tests.generate_fixtures import CLASSIFICATION_DIR, REGRESSION_DIR
 
 
 def test_binary_classification_metrics():
@@ -64,7 +64,7 @@ def test_binary_metrics_handle_missing_positive_predictions():
 
 
 def test_classification_metrics_match_en02_reference_fixture():
-    """US-19 results match the expected values established by EN-02."""
+    """Classification results match the reference values from EN-02."""
     model = joblib.load(CLASSIFICATION_DIR / "model.joblib")
     dataset = pd.read_csv(CLASSIFICATION_DIR / "data.csv")
 
@@ -83,15 +83,54 @@ def test_classification_metrics_match_en02_reference_fixture():
     assert actual == pytest.approx(expected)
 
 
-def test_regression_does_not_crash_before_us20():
-    """Regression remains safely non-applicable until US-20 implements it."""
-    metrics = compute(
-        "regression",
-        [1.0, 2.0, 3.0],
-        [1.1, 1.9, 3.2],
+def test_regression_metrics():
+    """Regression reports MAE, MSE, RMSE, and R²."""
+    y_true = [1.0, 2.0, 3.0, 4.0]
+    y_pred = [1.0, 2.0, 2.0, 5.0]
+
+    metrics = compute("regression", y_true, y_pred)
+
+    assert metrics == pytest.approx(
+        {
+            "mae": 0.5,
+            "mse": 0.5,
+            "rmse": 0.5**0.5,
+            "r2": 0.6,
+        }
     )
 
-    assert metrics == {}
+
+def test_regression_metrics_match_en02_reference_fixture():
+    """Regression results match the reference values established by EN-02."""
+    model = joblib.load(REGRESSION_DIR / "model.joblib")
+    dataset = pd.read_csv(REGRESSION_DIR / "data.csv")
+
+    y_true = dataset["price"].to_numpy()
+    features = dataset.drop(columns=["price"])
+    y_pred = model.predict(features)
+
+    actual = compute("regression", y_true, y_pred)
+
+    expected = json.loads(
+        (REGRESSION_DIR / "expected_metrics.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert actual == pytest.approx(expected)
+
+
+def test_constant_regression_target_does_not_crash():
+    """A constant target is handled without returning a non-finite R²."""
+    y_true = [5.0, 5.0, 5.0, 5.0]
+    y_pred = [4.0, 5.0, 6.0, 5.0]
+
+    metrics = compute("regression", y_true, y_pred)
+
+    assert metrics["mae"] == pytest.approx(0.5)
+    assert metrics["mse"] == pytest.approx(0.5)
+    assert metrics["rmse"] == pytest.approx(0.5**0.5)
+    assert metrics["r2"] == pytest.approx(0.0)
 
 
 def test_unsupported_task_type_is_rejected():
