@@ -1,8 +1,27 @@
 
 import { useEffect, useState } from "react";
-import { createEvaluation, getEvaluationStatus } from "./mockAPI";
+import { createEvaluation, getEvaluationStatus } from "./api";
 import Papa from "papaparse";
 import "./App.css";
+
+// Matches the backend's default upload limit (EVALUATOR_MAX_UPLOAD_MB). This is only quick feedback: the server
+// enforces the real limit.
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+function tooLargeMessage(file) {
+  return `${file.name} is larger than the ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB upload limit.`;
+}
+
+const METRIC_LABELS = {
+  accuracy: "Accuracy",
+  precision: "Precision",
+  recall: "Recall",
+  f1: "F1-score",
+  mae: "MAE",
+  mse: "MSE",
+  rmse: "RMSE",
+  r2: "R²",
+};
 
 function App() {
   const [modelFile, setModelFile] = useState(null);
@@ -13,7 +32,8 @@ function App() {
   const [error, setError] = useState("");
   const [evaluationId, setEvaluationId] = useState("");
   const [evaluationStatus, setEvaluationStatus] = useState("");
-  const [evaluationError, setEvaluationError] = useState(""); 
+  const [evaluationError, setEvaluationError] = useState("");
+  const [metrics, setMetrics] = useState(null);
   
 
   
@@ -29,6 +49,12 @@ function handleDatasetChange(event) {
 
   if (!file.name.toLowerCase().endsWith(".csv")) {
     setError("Please select a CSV dataset.");
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    setError(tooLargeMessage(file));
     event.target.value = "";
     return;
   }
@@ -96,31 +122,45 @@ function handleDatasetChange(event) {
       return;
     }
 
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setModelFile(null);
+      setError(tooLargeMessage(file));
+      event.target.value = "";
+      return;
+    }
+
     setModelFile(file);
   }
 
-  const canEvaluate =
-    modelFile && datasetFile && taskType && targetColumn;
+  const missing = [
+    !modelFile && "a model",
+    !datasetFile && "a dataset",
+    !taskType && "a task type",
+    !targetColumn && "a target column",
+  ].filter(Boolean);
+  const canEvaluate = missing.length === 0;
 
   async function handleEvaluate() {
   setError("");
   setEvaluationError("");
   setEvaluationId("");
+  setMetrics(null);
   setEvaluationStatus("pending");
 
   try {
     const result = await createEvaluation({
-      modelFilename: modelFile.name,
-      datasetFilename: datasetFile.name,
+      modelFile,
+      datasetFile,
       taskType,
       targetColumn,
-      
-  });
+    });
     setEvaluationId(result.evaluation_id);
     setEvaluationStatus(result.status);
   } catch (err) {
-    setEvaluationStatus("failed");
-    setEvaluationError(err.message || "Could not start evaluation.");
+    // The request was rejected (validation error, server unreachable): no evaluation exists, so show the
+    // message next to the form instead of in the status panel.
+    setEvaluationStatus("");
+    setError(err.message || "Could not start evaluation.");
   }
 }
 useEffect(() => {
@@ -138,7 +178,13 @@ useEffect(() => {
       setEvaluationStatus(result.status);
 
       if (result.status === "failed") {
-        setEvaluationError(result.error || "Evaluation failed.");
+        // The API returns an error object ({ code, message }); the mock returns a plain string.
+        setEvaluationError(result.error?.message || result.error || "Evaluation failed.");
+        return;
+      }
+
+      if (result.status === "completed") {
+        setMetrics(result.metrics || {});
         return;
       }
 
@@ -284,7 +330,7 @@ useEffect(() => {
           <span className="help">
             {canEvaluate
               ? "Your inputs are ready."
-              : "Select a model, dataset, task type and target column."}
+              : `Still needed: ${missing.join(", ")}.`}
           </span>
           <button
             type="button"
@@ -309,8 +355,30 @@ useEffect(() => {
       </span>
     </p>
 
-    {evaluationStatus === "completed" && (
-      <p>The mock evaluation completed successfully.</p>
+    {evaluationStatus === "completed" && metrics && (
+      <>
+        <h3>Results</h3>
+        {Object.keys(metrics).length === 0 ? (
+          <p className="help">The evaluation completed but reported no metrics.</p>
+        ) : (
+          <table className="metrics-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(metrics).map(([name, value]) => (
+                <tr key={name}>
+                  <td>{METRIC_LABELS[name] || name}</td>
+                  <td>{Number(value).toFixed(4)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </>
     )}
 
     {evaluationStatus === "failed" && (
