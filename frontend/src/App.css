@@ -309,3 +309,29 @@ footer {
   background: #fff1f0;
   color: #b42318;
 }
+
+.metrics-table {
+  width: 100%;
+  max-width: 420px;
+  border-collapse: collapse;
+  margin: 8px auto 0;
+}
+.metrics-table th,
+.metrics-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e1e7f0;
+  text-align: left;
+}
+.metrics-table td:last-child,
+.metrics-table th:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The page uses light panels in every colour scheme, so headings must not follow the dark-mode text colour
+   from index.css (near-white on white is unreadable). */
+.app h1,
+.app h2,
+.app h3 {
+  color: #182230;
+}
