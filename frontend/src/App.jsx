@@ -4,6 +4,14 @@ import { createEvaluation, getEvaluationStatus } from "./api";
 import Papa from "papaparse";
 import "./App.css";
 
+// Matches the backend's default upload limit (EVALUATOR_MAX_UPLOAD_MB). This is only quick feedback: the server
+// enforces the real limit.
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+function tooLargeMessage(file) {
+  return `${file.name} is larger than the ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB upload limit.`;
+}
+
 const METRIC_LABELS = {
   accuracy: "Accuracy",
   precision: "Precision",
@@ -41,6 +49,12 @@ function handleDatasetChange(event) {
 
   if (!file.name.toLowerCase().endsWith(".csv")) {
     setError("Please select a CSV dataset.");
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    setError(tooLargeMessage(file));
     event.target.value = "";
     return;
   }
@@ -104,6 +118,13 @@ function handleDatasetChange(event) {
     if (!isAllowed) {
       setModelFile(null);
       setError("Please select a .pkl or .joblib model file.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setModelFile(null);
+      setError(tooLargeMessage(file));
       event.target.value = "";
       return;
     }
