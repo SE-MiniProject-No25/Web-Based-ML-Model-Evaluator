@@ -1,6 +1,6 @@
 """Result Service: stores, retrieves and formats evaluation results."""
 
-from app.results.formatting import format_status
+from app.results.formatting import format_download, format_status
 from app.results.service import (
     Evaluation,
     EvaluationStore,
@@ -17,5 +17,6 @@ __all__ = [
     "InvalidTransition",
     "ResultService",
     "Status",
+    "format_download",
     "format_status",
 ]

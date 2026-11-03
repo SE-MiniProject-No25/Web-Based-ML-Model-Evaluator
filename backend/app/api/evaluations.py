@@ -1,12 +1,14 @@
 """Evaluation endpoints (Architecture section 10)."""
 
+import json
 from pathlib import PurePosixPath
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, File, Form, Request, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, Form, Request, Response, UploadFile
 
+from app.errors import AppError, ErrorCode
 from app.evaluation import run_evaluation
-from app.results import format_status
+from app.results import Status, format_download, format_status
 from app.validation.service import file_extension, validate_submission
 
 router = APIRouter(prefix="/api")
@@ -66,3 +68,24 @@ def get_evaluation(evaluation_id: str, request: Request) -> dict:
     """Current status; metrics when completed, the error object when failed (FR-12, FR-13, FR-19)."""
     # An unknown ID raises EVALUATION_NOT_FOUND, which the error handler turns into a 404.
     return format_status(request.app.state.results.get(evaluation_id))
+
+
+@router.get("/evaluations/{evaluation_id}/download")
+def download_evaluation(evaluation_id: str, request: Request) -> Response:
+    """The completed result as a JSON file (FR-15). Not available before completion (FR-20)."""
+    # An unknown ID raises EVALUATION_NOT_FOUND (404), as for the status endpoint (FR-19).
+    evaluation = request.app.state.results.get(evaluation_id)
+
+    if evaluation.status is not Status.COMPLETED:
+        if evaluation.status is Status.FAILED:
+            message = "The evaluation failed, so there are no results to download."
+        else:
+            message = "The evaluation has not finished yet. Try again when its status is completed."
+        raise AppError(ErrorCode.EVALUATION_NOT_COMPLETED, message)
+
+    # The ID is a server-generated UUID, so it is safe to use in the filename.
+    return Response(
+        content=json.dumps(format_download(evaluation), indent=2),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="evaluation-{evaluation.id}.json"'},
+    )
