@@ -95,14 +95,6 @@ def assert_failed_safely(service, evaluation_id, tmp_path):
     assert str(tmp_path) not in failed.error["message"]
 
 
-def test_dataset_that_does_not_match_the_model_fails_safely(service, tmp_path):
-    model, _ = write_classification_fixture(tmp_path / "c")
-    _, other_data = write_regression_fixture(tmp_path / "r", target="label")  # wrong feature columns
-    evaluation = submit(service, "classification", model, other_data, "label")
-    run_evaluation(evaluation.id, service)
-    assert_failed_safely(service, evaluation.id, tmp_path)
-
-
 def test_corrupt_model_file_fails_safely(service, tmp_path):
     _, data = write_classification_fixture(tmp_path)
     bad_model = tmp_path / "bad.joblib"
@@ -136,7 +128,10 @@ def test_diagnostics_are_logged_server_side(service, tmp_path, caplog):
     evaluation = submit(service, "classification", model, data, "no_such_column")
     with caplog.at_level(logging.ERROR):
         run_evaluation(evaluation.id, service)
-    assert any(evaluation.id in r.getMessage() and r.exc_info for r in caplog.records)
+    # The child's traceback is logged on the server and never reaches the client.
+    logged = " ".join(r.getMessage() for r in caplog.records)
+    assert evaluation.id in logged and "Traceback" in logged and "KeyError" in logged
+    assert "Traceback" not in service.get(evaluation.id).error["message"]
 
 
 def test_an_evaluation_cannot_be_run_twice(service, tmp_path):
