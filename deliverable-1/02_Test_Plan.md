@@ -256,7 +256,7 @@ A representative user shall attempt the primary workflow without developer assis
 | NFR-06 | Upload limits | TC-04 | Security Policy |
 | NFR-07 | Authentication when enabled | TC-17 | Authentication Middleware |
 | NFR-08 | Traceable status | TC-10, TC-22 | Result Service |
-| NFR-09 | Modular architecture | Architecture Review | Layered Components |
+| NFR-09 | Modular architecture | Architecture Review; automated check `backend/tests/test_architecture.py` | Layered Components |
 | NFR-10 | Security validation | TC-03, TC-04, TC-13–TC-18, TC-23 | Security Policy, Validation |
 | SEC-01 | File/type/size validation | TC-03, TC-04 | Validation |
 | SEC-02 | Controlled storage path | TC-13 | Temporary Storage |
@@ -266,6 +266,8 @@ A representative user shall attempt the primary workflow without developer assis
 | SEC-06 | Authentication | TC-17 | Authentication Middleware |
 | SEC-07 | Temporary cleanup | TC-18 | Storage Lifecycle Manager |
 | SEC-08 | Server-side input validation | TC-05, TC-06 | API + Validation |
+
+Test execution results are in the [Test Report](../planning/Test_Report.md). Which automated tests cover each case is recorded in `backend/tests/traceability.py`, and `python scripts/tc_report.py` (run from `backend/`) regenerates the per-case result table.
 
 ---
 
