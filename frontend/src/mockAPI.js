@@ -1,48 +1,48 @@
+const API_BASE_URL = "/api";
 
-const evaluations = new Map();
+async function parseResponse(response) {
+  const data = await response.json().catch(() => ({}));
 
-export async function createEvaluation(payload) {
-  const id = `mock-${Date.now()}`;
+  if (!response.ok) {
+    const message =
+      data.detail ||
+      data.error ||
+      data.message ||
+      `Request failed with status ${response.status}.`;
 
-  evaluations.set(id, {
-    id,
-    status: "pending",
-    error: null,
-    payload,
-    createdAt: Date.now(),
+    throw new Error(
+      typeof message === "string" ? message : JSON.stringify(message)
+    );
+  }
+
+  return data;
+}
+
+export async function createEvaluation({
+  modelFile,
+  datasetFile,
+  taskType,
+  targetColumn,
+}) {
+  const formData = new FormData();
+
+  formData.append("model", modelFile);
+  formData.append("dataset", datasetFile);
+  formData.append("task_type", taskType);
+  formData.append("target_column", targetColumn);
+
+  const response = await fetch(`${API_BASE_URL}/evaluations`, {
+    method: "POST",
+    body: formData,
   });
 
-  // Simulate the backend accepting the request.
-  return { evaluation_id: id, status: "pending" };
+  return parseResponse(response);
 }
 
 export async function getEvaluationStatus(id) {
-  const evaluation = evaluations.get(id);
+  const response = await fetch(
+    `${API_BASE_URL}/evaluations/${encodeURIComponent(id)}`
+  );
 
-  if (!evaluation) {
-    throw new Error("Evaluation not found.");
-  }
-
-  const elapsed = Date.now() - evaluation.createdAt;
-
-  if (evaluation.payload.simulateFailure) {
-    if (elapsed >= 2000) {
-      evaluation.status = "failed";
-      evaluation.error = "Mock evaluation failed for testing.";
-    } else if (elapsed >= 1000) {
-      evaluation.status = "running";
-    }
-  } else {
-    if (elapsed >= 4000) {
-      evaluation.status = "completed";
-    } else if (elapsed >= 1000) {
-      evaluation.status = "running";
-    }
-  }
-
-  return {
-    evaluation_id: evaluation.id,
-    status: evaluation.status,
-    error: evaluation.error,
-  };
+  return parseResponse(response);
 }
