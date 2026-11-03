@@ -204,10 +204,12 @@ Example response:
 
 ```json
 {
-  "evaluation_id": "eval_12345",
+  "evaluation_id": "3f2b8c1e-9d4a-4e6b-8a57-1c2d3e4f5a6b",
   "status": "pending"
 }
 ```
+
+The `evaluation_id` is a random UUID (version 4), so results cannot be found by guessing identifiers (Section 6.2).
 
 All inputs are validated server-side before the evaluation is created (Section 9). Invalid input is rejected synchronously with an error response (Section 10.4), and no evaluation is created.
 
@@ -228,7 +230,7 @@ Example completed response:
 
 ```json
 {
-  "evaluation_id": "eval_12345",
+  "evaluation_id": "3f2b8c1e-9d4a-4e6b-8a57-1c2d3e4f5a6b",
   "status": "completed",
   "task_type": "classification",
   "metrics": {
@@ -244,7 +246,7 @@ Example failed response:
 
 ```json
 {
-  "evaluation_id": "eval_12345",
+  "evaluation_id": "3f2b8c1e-9d4a-4e6b-8a57-1c2d3e4f5a6b",
   "status": "failed",
   "task_type": "classification",
   "error": {
@@ -258,7 +260,25 @@ Example failed response:
 
 ### 10.3 GET `/api/evaluations/{evaluation_id}/download`
 
-Returns the completed result in a structured downloadable format.
+Returns the completed result as a JSON file (`Content-Disposition: attachment; filename="evaluation-<evaluation_id>.json"`).
+
+Example file:
+
+```json
+{
+  "evaluation_id": "3f2b8c1e-9d4a-4e6b-8a57-1c2d3e4f5a6b",
+  "status": "completed",
+  "task_type": "classification",
+  "target_column": "churned",
+  "model_filename": "churn_classifier.joblib",
+  "dataset_filename": "churn_dataset.csv",
+  "metrics": { "accuracy": 0.94, "precision": 0.93, "recall": 0.92, "f1": 0.925 },
+  "created_at": "2026-11-03T12:00:00.123456+00:00",
+  "finished_at": "2026-11-03T12:00:03.456789+00:00"
+}
+```
+
+Timestamps are ISO 8601 in UTC. The file contains the client's original filenames (directory part removed) but never server-side paths. A pending, running or failed evaluation returns `409 EVALUATION_NOT_COMPLETED` and no file.
 
 **Errors:** `401`, `404`, `409` (see Section 11)
 
