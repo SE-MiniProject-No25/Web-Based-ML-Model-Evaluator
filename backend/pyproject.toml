@@ -8,3 +8,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Long documentation strings and example messages.
+"app/api/docs.py" = ["E501"]
