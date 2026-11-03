@@ -153,7 +153,7 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
                 pass
 
             try:
-                returncode = proc.wait(timeout=5.0)
+                returncode = proc.wait(timeout=15.0)
             except subprocess.TimeoutExpired:
                 raise AppError(
                     ErrorCode.INVALID_MODEL,
