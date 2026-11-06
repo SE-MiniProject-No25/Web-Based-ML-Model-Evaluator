@@ -13,7 +13,8 @@ def create_app(settings: Settings | None = None, results: ResultService | None =
     settings = settings or load_settings()
     app = FastAPI(title="Web-Based ML Model Evaluator")
     app.state.settings = settings
-    app.state.storage = TemporaryStorage(settings.storage_dir)
+    app.state.storage = TemporaryStorage(settings.storage_dir, retention_seconds=settings.retention_seconds)
+    app.state.storage_lifecycle = app.state.storage.lifecycle
     app.state.results = results or ResultService()
     register_error_handlers(app)
     app.include_router(evaluations_router)
