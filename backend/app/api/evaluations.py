@@ -58,6 +58,7 @@ def submit_evaluation(
         dataset_path=dataset_path,
     )
     background_tasks.add_task(run_evaluation, evaluation.id, state.results)
+    background_tasks.add_task(state.storage.cleanup_expired)
     return {"evaluation_id": evaluation.id, "status": evaluation.status.value}
 
 
