@@ -1,3 +1,5 @@
+> **Superseded.** This is the Sprint 2 report from 3 November 2026. It was written before authentication, safe error responses, secure storage, the determinism tests and the usability test were merged, so its results and defect list are out of date. The current results are in the [System Validation Report](../docs/System_Validation_Report.md) and the other reports in [`docs/`](../docs/). It is kept for the record.
+
 # Test Report
 ## Web-Based ML Model Evaluator
 
