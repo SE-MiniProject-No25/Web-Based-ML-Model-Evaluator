@@ -103,11 +103,11 @@ ruff check .
 pytest
 ```
 
-Limits and switches (allowed extensions, upload size, evaluation time limit, retention period, authentication on/off) live in [`backend/app/config.py`](backend/app/config.py) and can be overridden with `MLEVAL_*` environment variables.
+Limits and switches (allowed extensions, upload size, evaluation time and memory limits, retention period, authentication on/off) live in [`backend/app/config.py`](backend/app/config.py) and can be overridden with `MLEVAL_*` environment variables.
 
 ### Supported model format
 
-scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded by the evaluation component after validation, and execution is time-limited (see US-04 and US-07).
+scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded in a separate child process with a sanitized environment, after validation. The evaluation run is stopped at the configured time limit, and at the memory limit on Linux and macOS (Windows has no equivalent for a plain child process, so only the time limit applies there). This is process isolation, not a container sandbox.
 
 ### Contributing
 

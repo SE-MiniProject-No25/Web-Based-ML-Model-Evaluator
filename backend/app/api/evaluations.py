@@ -59,7 +59,7 @@ def submit_evaluation(
         model_path=model_path,
         dataset_path=dataset_path,
     )
-    background_tasks.add_task(run_evaluation, evaluation.id, state.results)
+    background_tasks.add_task(run_evaluation, evaluation.id, state.results, settings=state.settings)
     return {"evaluation_id": evaluation.id, "status": evaluation.status.value}
 
 
