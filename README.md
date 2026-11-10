@@ -60,7 +60,7 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 
 ## Demo
 
-- **[Sprint 2 demo video](deliverable-2/Sprint2_Demo.mp4)** (2 minutes): the working product end to end, with the [shot list and narration](deliverable-2/Sprint2_Demo_Script.md). The earlier [Sprint 1 video](deliverable-1/Sprint1_Demo.mp4) shows the first working version.
+- **[Sprint 2 demo video](deliverable-2/Sprint2_Demo.mp4)** (2 minutes): a screen recording of the working product end to end, with [what each part shows](deliverable-2/README.md#what-the-video-shows). The earlier [Sprint 1 video](deliverable-1/Sprint1_Demo.mp4) shows the first working version.
 - **[Demo inputs](deliverable-2/demo-inputs/)**: six good models and datasets and nine bad inputs to try in the interface, with what each one shows. The [demo script](planning/Demo_Script.md) is the 5-minute live version.
 
 ## Code Map
