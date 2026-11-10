@@ -449,29 +449,26 @@ def test_encoded_slashes_and_backslashes_in_path():
     assert is_protected_path("/api%5Chealth") is False
 
 
-def test_future_download_endpoint_compatibility(auth_settings, store):
-    """Verify that future subpaths like /download are protected and work with credentials."""
-    app = create_app(auth_settings, ResultService(store))
-
-    # Mount a mock download endpoint simulating PR #48
-    @app.get("/api/evaluations/{evaluation_id}/download")
-    def download_evaluation(evaluation_id: str):
-        return {"download": True, "evaluation_id": evaluation_id}
-
+def test_download_endpoint_is_protected_and_works_with_credentials(auth_settings, store):
+    """The real /download endpoint (US-03) is protected, and works with credentials."""
+    results = ResultService(store)
+    app = create_app(auth_settings, results)
+    evaluation = results.create("classification", "label", "model.joblib", "data.csv")
+    results.mark_running(evaluation.id)
+    results.mark_completed(evaluation.id, {"accuracy": 1.0})
+    url = f"/api/evaluations/{evaluation.id}/download"
     client = TestClient(app)
 
     # 1. Unauthenticated request to /download is rejected
-    res_unauth = client.get("/api/evaluations/eval_123/download")
+    res_unauth = client.get(url)
     assert res_unauth.status_code == 401
     assert res_unauth.json()["error"]["code"] == "UNAUTHENTICATED"
 
     # 2. Authenticated request to /download succeeds
-    res_auth = client.get(
-        "/api/evaluations/eval_123/download",
-        headers={"X-API-Key": TEST_KEY},
-    )
+    res_auth = client.get(url, headers={"X-API-Key": TEST_KEY})
     assert res_auth.status_code == 200
-    assert res_auth.json() == {"download": True, "evaluation_id": "eval_123"}
+    assert res_auth.json()["evaluation_id"] == evaluation.id
+    assert res_auth.json()["metrics"] == {"accuracy": 1.0}
 
 
 # ---------------------------------------------------------------------------

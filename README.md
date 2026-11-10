@@ -54,6 +54,8 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
+- [Demo Script](planning/Demo_Script.md) — the 5-minute demo, who presents what, and backup screenshots.
+- [Test Report](planning/Test_Report.md) — results of the 25 Test Plan cases, defects and exit criteria.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
 ## Code Map
@@ -103,15 +105,56 @@ ruff check .
 pytest
 ```
 
-Limits and switches (allowed extensions, upload size, evaluation time limit, retention period, authentication on/off) live in [`backend/app/config.py`](backend/app/config.py) and can be overridden with `MLEVAL_*` environment variables.
+Limits and switches (allowed extensions, upload size, evaluation time and memory limits, retention period, authentication on/off) live in [`backend/app/config.py`](backend/app/config.py) and can be overridden with `MLEVAL_*` environment variables.
 
 ### Supported model format
 
-scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded by the evaluation component after validation, and execution is time-limited (see US-04 and US-07).
+scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded in a separate child process with a sanitized environment, after validation. The evaluation run is stopped at the configured time limit, and at the memory limit on Linux and macOS (Windows has no equivalent for a plain child process, so only the time limit applies there). This is process isolation, not a container sandbox.
 
 ### Contributing
 
 Branch per issue (`feat/US-06-file-validation`), never commit to `main`, and open a pull request that says `Closes #<issue>`. See [Sprint Plan §4](planning/Sprint_Plan.md).
+
+## Run and try it
+
+Start the backend (see [Getting Started](#getting-started)), then open **http://127.0.0.1:8000/docs** for the interactive API documentation: every endpoint, request field, response and error code from [Architecture §10–11](deliverable-1/03_Architecture_and_Design.md#10-api-design), with a *Try it out* button. The same information as plain commands, run from the repository root (in Windows PowerShell write `curl.exe` instead of `curl`):
+
+**1. Submit an evaluation.** Answered at once with `202`; the evaluation runs in the background.
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/api/evaluations   -F model=@backend/tests/fixtures/classification/model.joblib   -F dataset=@backend/tests/fixtures/classification/data.csv   -F task_type=classification   -F target_column=label
+```
+```json
+{"evaluation_id":"3b7e2a3d-d3c3-4c29-9eed-a1ddc3c1a5d3","status":"pending"}
+```
+
+**2. Check the status.** Repeat until `status` is `completed` or `failed` (a few seconds).
+
+```bash
+curl -s http://127.0.0.1:8000/api/evaluations/3b7e2a3d-d3c3-4c29-9eed-a1ddc3c1a5d3
+```
+```json
+{"evaluation_id":"3b7e2a3d-…","status":"completed","task_type":"classification","metrics":{"accuracy":0.9625,"precision":0.9767441860465116,"recall":0.9545454545454546,"f1":0.9655172413793104}}
+```
+
+**3. Download the result** as a file (`-OJ` saves it under the name the server gives it, `evaluation-<id>.json`).
+
+```bash
+curl -s -OJ http://127.0.0.1:8000/api/evaluations/3b7e2a3d-d3c3-4c29-9eed-a1ddc3c1a5d3/download
+```
+
+Mistakes come back in one format, `{"error": {"code", "message"}}`, with the status from the architecture's error table: an unknown ID is `404 EVALUATION_NOT_FOUND`, downloading before the evaluation has completed is `409 EVALUATION_NOT_COMPLETED`, and for example `task_type=clustering` is `422 INVALID_TASK_TYPE`. An evaluation that goes wrong *after* the `202` (wrong columns, a time or memory limit, a crash) is not an HTTP error: its status becomes `failed` and the status endpoint returns the same `error` object.
+
+Reference models and datasets to try are in `backend/tests/fixtures/`: `classification/` (target column `label`, task `classification`) and `regression/` (target column `price`, task `regression`).
+
+### Using the API from the frontend
+
+The frontend needs nothing beyond this section. In development Vite forwards every `/api/...` request to the backend on port 8000 (`frontend/vite.config.js`), and `frontend/src/api.js` calls the three endpoints above. Set `VITE_USE_MOCK=true` to use the in-memory mock instead (for example when the backend is not running); leave it unset to use the real API. Poll the status endpoint about once a second until the status is `completed` or `failed`.
+
+### Known gaps in the API
+
+- **Authentication** (`401 UNAUTHENTICATED`) is documented but not enforced yet (US-11).
+- **Unknown URLs and unsupported methods** return FastAPI's default `{"detail": ...}` body instead of the error format above (US-09).
 
 ## Deliverable 1
 

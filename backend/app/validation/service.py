@@ -9,7 +9,6 @@ called by the API.
 
 import csv
 import io
-import os
 import subprocess
 import sys
 import tempfile
@@ -18,6 +17,7 @@ from typing import BinaryIO
 
 from app.config import Settings
 from app.errors import AppError, ErrorCode
+from app.security import sanitized_env
 
 TASK_TYPES = ("classification", "regression")
 
@@ -107,18 +107,7 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
     """
     file.seek(0)
     try:
-        clean_env = {
-            "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
-            "PATH": os.environ.get("PATH", ""),
-            "PYTHONHASHSEED": "0",
-            # The stripped environment hides how this interpreter finds its packages (for
-            # example pip --user installs on Windows are located through APPDATA), so hand
-            # the child exactly the import paths the server itself is using.
-            "PYTHONPATH": os.pathsep.join(p for p in sys.path if p),
-        }
-        for var in ("TEMP", "TMP", "WINDIR", "USERPROFILE"):
-            if var in os.environ:
-                clean_env[var] = os.environ[var]
+        clean_env = sanitized_env()
 
         script_path = str(Path(__file__).resolve().parent / "model_inspector.py")
         cmd = [sys.executable, script_path]
