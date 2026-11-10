@@ -436,7 +436,7 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "## 1. Summary\n\n| Result | Cases |\n|---|---|\n"
         f"| **Pass** | **{len(passed)} of 25**: {', '.join(passed)}. 24 are automated; TC-21 is a manual test with one participant |\n"
         f"| **Fail** | {len(failed)}{(': ' + ', '.join(failed)) if failed else ''} |\n"
-        "| Of those, with a limitation | TC-12 (the API download works; the interface has no download control), "
+        "| Of those, with a limitation | "
         "TC-15 (memory limit not enforced on Windows), TC-18 (cleanup runs on the next submission, not on a timer), "
         "TC-21 (see section 5) |\n\n"
         f"The automated suite has {k['total']} tests: {k['passed']} passed, {k['failed']} failed, {k['skipped']} skipped "
@@ -458,7 +458,7 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "TC-01": "API accepts a supported model. UI checked by hand (section 6).",
         "TC-02": "API accepts a valid CSV; the UI lists the detected columns (section 6).",
         "TC-07": "Each missing field gives `400 MISSING_REQUIRED_FIELD`. In the UI the Next button stays disabled (section 6).",
-        "TC-12": "Download works through the API. **The interface has no download control (DEF-09).**",
+        "TC-12": "Download works through the API and through the interface's Download Results button (section 6).",
         "TC-15": "Time limit proven end to end; memory limit proven on Linux (CI) and not enforced on Windows (DEF-04).",
         "TC-16": "Validation errors, runtime errors, unknown URLs and unexpected exceptions leak no trace, secret or path.",
         "TC-17": "Optional API key (`X-API-Key` or `Authorization: Bearer`); fails secure if enabled with no key.",
@@ -501,9 +501,9 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "two minutes without help, and found the evaluate button easily. Improvement suggestions: clearer guidance "
         "on which files to choose, plain-language descriptions of the options, and explanations of the metrics.\n\n"
         "Two things in that report need correcting before it is relied on:\n\n"
-        "- It says the participant \"did not notice the download control\", but **the interface has no download "
-        "control** (US-17 is not built), so there was nothing to notice. Either a different build was tested or the "
-        "line should be removed.\n"
+        "- It says the participant \"did not notice the download control\". The interface only gained a download "
+        "button on 10 November (pull request #62), and the report has no date, so it cannot be tied to a build; if "
+        "an earlier build was tested there was nothing to notice. The author should say which build was used.\n"
         "- The test date is still the placeholder `[Enter actual test date]`.\n\n"
         "With one participant this is an indication, not a statistically meaningful result. TC-21 is recorded as a "
         "**pass** for the primary workflow, with those caveats (DEF-07).\n"
@@ -515,7 +515,9 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "- After choosing a model and a CSV, the Configure step lists the detected columns.\n"
         "- With a file missing, the Next button is disabled, so an empty submission cannot be sent from the page.\n"
         "- A model or CSV over 10 MB is refused in the browser with a size message.\n"
-        "- A classification run and a regression run completed and displayed their metrics (screenshots in `planning/demo/`).\n"
+        "- A classification run and a regression run completed and displayed their metrics in a table and a bar chart (screenshots in `planning/demo/`).\n"
+        "- **Download Results** appears only once the evaluation has completed; clicking it saved `evaluation-<id>.json` with every field in the specification and the same accuracy as the screen (0.9625).\n"
+        "- With the backend stopped, submitting shows \"The evaluation server is temporarily unavailable\" and the user can try again; a server-side rejection (a malformed CSV) returns the user to the Upload step with the server's message and \"Please correct the highlighted field(s)\".\n"
         "- A mismatched dataset ended *failed* with a message naming the missing and unused columns; a corrupt model "
         "and a malformed CSV were rejected with a plain message on the review step.\n"
         "- With the backend stopped, submitting keeps the user on the review step with an error and the button usable.\n"
@@ -536,7 +538,7 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
     exe_ok = [
         ("All mandatory test cases have been executed", "Yes. All 25 were executed; TC-21 as a manual test."),
         ("Critical functional requirements have passing tests or documented defects",
-         "Yes. FR-01 to FR-20 pass at the API; FR-15 has a documented gap in the interface (DEF-09)."),
+         "Yes. FR-01 to FR-20 pass at the API, and FR-15 also in the interface (Download Results button)."),
         ("Security validation cases have been executed", "Yes. TC-03, TC-04, TC-13 to TC-18 and TC-23 all pass."),
         ("Traceability is complete", "Yes. All 25 cases map to tests or a manual record, checked automatically."),
         ("Unresolved defects are documented with severity and status", "Yes, section 8."),
@@ -552,9 +554,9 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "| DEF-04 | Memory limit not enforced on Windows | Medium | Accepted, documented in the README |\n"
         f"| DEF-05 | Acknowledgement margin is small on Windows ({slowest:.2f} s of 2 s), dominated by the model check before the `202` | Low | Open, monitor |\n"
         "| DEF-06 | A malicious model still runs code with the server user's privileges (pickle) | High (inherent) | Accepted, documented |\n"
-        "| DEF-07 | The usability report names a download control that does not exist and has no test date | Low | Open, owner Akshya |\n"
+        "| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | Open, owner Akshya |\n"
         "| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |\n"
-        "| DEF-09 | The interface has no control to download results (US-17), so TC-12 is only met through the API | Medium | Open, owner Akshath |\n"
+        "| DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |\n"
         "| DEF-10 | The retention cleanup does not skip files of an evaluation that is still running. With the defaults (retention 3600 s, evaluation limit 60 s) this cannot happen, but a retention shorter than a run could delete files mid-evaluation | Low | Open, owner Akash |\n"
     )
     out.append(
