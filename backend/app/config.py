@@ -22,8 +22,8 @@ class Settings:
     max_upload_bytes: int = 10 * 1024 * 1024
     # Wall-clock limit for one evaluation run.
     evaluation_timeout_seconds: int = 60
-    # Address-space limit for one evaluation. Enforced on Linux and macOS only; Windows has no
-    # equivalent for a plain child process, so there only the time limit applies.
+    # Memory limit for one evaluation: the address space on Linux and macOS (set by the worker), the
+    # process memory on Windows (set by a job object, app/security/memory_limit.py). 0 means no limit.
     evaluation_memory_limit_bytes: int = 2 * 1024 * 1024 * 1024
     # How long temporary artifacts are kept after an evaluation ends.
     retention_seconds: int = 3600

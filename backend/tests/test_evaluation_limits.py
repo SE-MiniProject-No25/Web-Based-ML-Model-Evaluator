@@ -1,7 +1,6 @@
 """US-04: incompatible inputs (TC-11), time and memory limits (TC-15), safe failures (TC-16, runtime half)."""
 
 import logging
-import sys
 import time
 
 import joblib
@@ -127,8 +126,8 @@ def test_exceeding_the_time_limit_stops_the_evaluation(service, tmp_path):
     assert elapsed < 30, "the model sleeps for 60 s, so the child must have been killed"
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="memory limits need the POSIX resource module")
 def test_exceeding_the_memory_limit_stops_the_evaluation(service, tmp_path):
+    """Enforced by the worker on Linux and macOS, and by a job object on Windows (TEST-10)."""
     model, data = custom_model(tmp_path, MemoryHogModel())
     evaluation = submit(service, model, data)
 

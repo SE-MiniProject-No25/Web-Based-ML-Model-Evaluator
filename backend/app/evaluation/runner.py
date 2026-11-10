@@ -5,7 +5,8 @@ Service, so the API always sees a consistent status.
 
 The model is never loaded in the server process: ``joblib.load`` executes code contained in the
 file. ``worker.py`` loads it and predicts in a child process with a sanitized environment, the
-configured time limit and (on Linux and macOS) the configured memory limit. Scoring then happens
+configured time limit and the configured memory limit (set by the worker itself on Linux and macOS,
+and by a Windows job object on Windows). Scoring then happens
 here, on plain lists, with the trusted Metrics Service.
 
 Failure outcomes (Architecture section 11):
@@ -31,7 +32,7 @@ from app.config import Settings
 from app.errors import ErrorCode
 from app.metrics import compute
 from app.results import Evaluation, ResultService
-from app.security import sanitized_env
+from app.security import limit_child_memory, sanitized_env
 
 logger = logging.getLogger(__name__)
 
@@ -91,32 +92,39 @@ def _predict_in_child_process(evaluation: Evaluation, settings: Settings) -> dic
             str(result_path),
             str(settings.evaluation_memory_limit_bytes),
         ]
+        process = subprocess.Popen(
+            command,
+            env=sanitized_env(),
+            cwd=workdir,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        # Windows: the operating system enforces the memory limit (on Linux and macOS the worker does).
+        memory_limit = limit_child_memory(process, settings.evaluation_memory_limit_bytes)
         try:
-            # On timeout subprocess.run kills the child before raising.
-            completed = subprocess.run(
-                command,
-                env=sanitized_env(),
-                cwd=workdir,
-                stdin=subprocess.DEVNULL,
-                capture_output=True,
-                text=True,
-                timeout=settings.evaluation_timeout_seconds,
-            )
+            _, stderr = process.communicate(timeout=settings.evaluation_timeout_seconds)
         except subprocess.TimeoutExpired:
+            process.kill()
+            process.communicate()
             limit = settings.evaluation_timeout_seconds
             logger.warning("Evaluation %s exceeded the %ss time limit", evaluation.id, limit)
             raise _Failure(
                 ErrorCode.RESOURCE_LIMIT_EXCEEDED,
                 f"The evaluation exceeded the time limit of {limit} seconds and was stopped.",
             ) from None
+        finally:
+            if memory_limit is not None:
+                memory_limit.close()
 
-        if completed.stderr:
+        if stderr:
             # Tracebacks from the child: server-side only.
-            logger.error("Evaluation %s worker output:\n%s", evaluation.id, completed.stderr[-4000:])
+            logger.error("Evaluation %s worker output:\n%s", evaluation.id, stderr[-4000:])
 
         if not result_path.exists():
             # The child crashed or was killed (for example by the OS) before reporting.
-            status = completed.returncode
+            status = process.returncode
             logger.error("Evaluation %s worker exited with status %s without a result", evaluation.id, status)
             raise _Failure(ErrorCode.EVALUATION_FAILED, GENERIC_FAILURE_MESSAGE)
 
