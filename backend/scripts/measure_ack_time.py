@@ -5,6 +5,7 @@ takes to return its ``202``. The reference classification fixtures from EN-02 ar
 
     python scripts/measure_ack_time.py                       # server on http://127.0.0.1:8000
     python scripts/measure_ack_time.py --url http://127.0.0.1:8010 --runs 10 --out ack_times.md
+    python scripts/measure_ack_time.py --pause 2      # 2 s between requests, like a person using the UI
 
 Exit status is 0 when every request was acknowledged within the limit, 1 otherwise, so it can run in a
 pipeline. The table it prints is what goes into the Test Report.
@@ -22,13 +23,15 @@ FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "classif
 DEFAULT_LIMIT_SECONDS = 2.0
 
 
-def measure(base_url: str, runs: int = 10) -> list[float]:
-    """Acknowledgement time in seconds for each of ``runs`` valid requests."""
+def measure(base_url: str, runs: int = 10, pause: float = 0.0) -> list[float]:
+    """Acknowledgement time in seconds for each of ``runs`` valid requests, ``pause`` seconds apart."""
     model = (FIXTURES / "model.joblib").read_bytes()
     dataset = (FIXTURES / "data.csv").read_bytes()
     times = []
     with httpx.Client(base_url=base_url, timeout=30.0) as client:
-        for _ in range(runs):
+        for run in range(runs):
+            if run and pause:
+                time.sleep(pause)
             started = time.perf_counter()
             response = client.post(
                 "/api/evaluations",
@@ -61,12 +64,13 @@ def main() -> int:
     )
     parser.add_argument("--url", default="http://127.0.0.1:8000", help="base URL of a running server")
     parser.add_argument("--runs", type=int, default=10)
+    parser.add_argument("--pause", type=float, default=0.0, help="seconds between requests (default: none)")
     parser.add_argument("--limit", type=float, default=DEFAULT_LIMIT_SECONDS, help="seconds")
     parser.add_argument("--out", help="also write the table to this file")
     args = parser.parse_args()
 
     try:
-        times = measure(args.url, args.runs)
+        times = measure(args.url, args.runs, args.pause)
     except httpx.ConnectError:
         print(f"Could not connect to {args.url}. Start the backend first (see the README).", file=sys.stderr)
         return 2

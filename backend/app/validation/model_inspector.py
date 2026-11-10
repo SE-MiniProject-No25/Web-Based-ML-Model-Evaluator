@@ -13,10 +13,31 @@ Complete defense against arbitrary code execution requires OS-level containeriza
 or virtualization (e.g., Docker with no network and dropped capabilities).
 """
 
+import importlib
 import io
 import sys
 
 import joblib
+
+# Imported before the model arrives, so that a spare inspector started ahead of time (see
+# ``InspectorPool`` in service.py) has already paid for them. Unpickling imports whatever else it needs.
+PRELOADED = (
+    "sklearn.linear_model",
+    "sklearn.ensemble",
+    "sklearn.tree",
+    "sklearn.pipeline",
+    "sklearn.preprocessing",
+    "sklearn.compose",
+    "sklearn.impute",
+)
+
+
+def preload() -> None:
+    for name in PRELOADED:
+        try:
+            importlib.import_module(name)
+        except ImportError:
+            pass
 
 
 def main() -> None:
@@ -35,4 +56,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    preload()
     main()

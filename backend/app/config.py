@@ -25,6 +25,9 @@ class Settings:
     # Address-space limit for one evaluation. Enforced on Linux and macOS only; Windows has no
     # equivalent for a plain child process, so there only the time limit applies.
     evaluation_memory_limit_bytes: int = 2 * 1024 * 1024 * 1024
+    # Model inspector processes kept ready, with scikit-learn imported, so a submission is acknowledged
+    # quickly (each model is still checked in its own fresh process). 0 starts one per request.
+    spare_inspectors: int = 2
     # How long temporary artifacts are kept after an evaluation ends.
     retention_seconds: int = 3600
     # Authentication on evaluation and result endpoints (off by default).
@@ -58,6 +61,7 @@ def load_settings() -> Settings:
             os.environ.get("MLEVAL_EVALUATION_MEMORY_LIMIT_BYTES", defaults.evaluation_memory_limit_bytes)
         ),
         retention_seconds=int(os.environ.get("MLEVAL_RETENTION_SECONDS", defaults.retention_seconds)),
+        spare_inspectors=int(os.environ.get("MLEVAL_SPARE_INSPECTORS", defaults.spare_inspectors)),
         auth_enabled=_env_bool("MLEVAL_AUTH_ENABLED", defaults.auth_enabled),
         api_key=os.environ.get("MLEVAL_API_KEY", defaults.api_key),
         storage_dir=Path(os.environ.get("MLEVAL_STORAGE_DIR", defaults.storage_dir)),

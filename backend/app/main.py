@@ -9,6 +9,7 @@ from app.api.evaluations import router as evaluations_router
 from app.config import Settings, load_settings
 from app.results import ResultService
 from app.storage import TemporaryStorage
+from app.validation.service import INSPECTORS
 
 
 def create_app(settings: Settings | None = None, results: ResultService | None = None) -> FastAPI:
@@ -26,6 +27,8 @@ def create_app(settings: Settings | None = None, results: ResultService | None =
     register_error_handlers(app)
     app.add_middleware(AuthenticationMiddleware)
     app.include_router(evaluations_router)
+    INSPECTORS.resize(settings.spare_inspectors)
+    INSPECTORS.warm()  # spare model inspectors, ready before the first request (TEST-04)
 
     @app.get("/api/health")
     def health() -> dict:

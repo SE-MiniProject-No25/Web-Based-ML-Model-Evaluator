@@ -7,11 +7,13 @@ dataset header (US-08). Keep ``validate_submission`` as the single entry point
 called by the API.
 """
 
+import atexit
 import csv
 import io
 import subprocess
 import sys
 import tempfile
+import threading
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
@@ -20,6 +22,74 @@ from app.errors import AppError, ErrorCode
 from app.security import sanitized_env
 
 TASK_TYPES = ("classification", "regression")
+INSPECTOR_SCRIPT = str(Path(__file__).resolve().parent / "model_inspector.py")
+
+
+def _start_inspector() -> subprocess.Popen:
+    """A new, isolated inspector process. It imports scikit-learn, then waits for one model on stdin."""
+    return subprocess.Popen(
+        [sys.executable, INSPECTOR_SCRIPT],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        cwd=tempfile.gettempdir(),
+        env=sanitized_env(),
+    )
+
+
+class InspectorPool:
+    """Keeps inspector processes started ahead of time (TEST-04, NFR-02).
+
+    Starting Python and importing scikit-learn takes about 1.5 s, almost all of the time before the
+    ``202``. Spares that have already done that are handed to the next requests, and a replacement is
+    started straight away. Every model is still inspected in its own fresh process, used once, so the
+    isolation is the same as starting one per request. Spares that are idle when the server exits see
+    their stdin close and exit. With ``size`` spares, requests up to about ``size`` per 1.5 s get one
+    that is ready; faster bursts wait for the import, as before.
+    """
+
+    def __init__(self, start=None, size: int = 2):
+        self._start = start
+        self._size = size
+        self._spares: list[subprocess.Popen] = []
+        self._lock = threading.Lock()
+
+    def _new(self) -> subprocess.Popen:
+        return (self._start or _start_inspector)()
+
+    def _top_up(self) -> None:
+        self._spares = [p for p in self._spares if p.poll() is None]
+        while len(self._spares) < self._size:
+            self._spares.append(self._new())
+
+    def take(self) -> subprocess.Popen:
+        """An inspector for one model: the oldest live spare, otherwise a new process."""
+        with self._lock:
+            alive = [p for p in self._spares if p.poll() is None]
+            process = alive.pop(0) if alive else self._new()
+            self._spares = alive
+            self._top_up()
+            return process
+
+    def resize(self, size: int) -> None:
+        self._size = max(size, 0)
+
+    def warm(self) -> None:
+        """Start the spares now, so the first requests do not wait for them."""
+        with self._lock:
+            self._top_up()
+
+    def close(self) -> None:
+        with self._lock:
+            spares, self._spares = self._spares, []
+        for process in spares:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+
+
+INSPECTORS = InspectorPool()
+atexit.register(INSPECTORS.close)
 
 
 def _extension(filename: str) -> str:
@@ -107,19 +177,7 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
     """
     file.seek(0)
     try:
-        clean_env = sanitized_env()
-
-        script_path = str(Path(__file__).resolve().parent / "model_inspector.py")
-        cmd = [sys.executable, script_path]
-
-        proc = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            cwd=tempfile.gettempdir(),
-            env=clean_env,
-        )
+        proc = INSPECTORS.take()
 
         try:
             try:
