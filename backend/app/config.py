@@ -29,6 +29,8 @@ class Settings:
     retention_seconds: int = 3600
     # Authentication on evaluation and result endpoints (off by default).
     auth_enabled: bool = False
+    # Secret API key required when auth_enabled is True (loaded from MLEVAL_API_KEY).
+    api_key: str | None = None
     # Where uploads are stored: outside the source tree, never user-named.
     storage_dir: Path = Path(tempfile.gettempdir()) / "ml-model-evaluator"
 
@@ -57,5 +59,6 @@ def load_settings() -> Settings:
         ),
         retention_seconds=int(os.environ.get("MLEVAL_RETENTION_SECONDS", defaults.retention_seconds)),
         auth_enabled=_env_bool("MLEVAL_AUTH_ENABLED", defaults.auth_enabled),
+        api_key=os.environ.get("MLEVAL_API_KEY", defaults.api_key),
         storage_dir=Path(os.environ.get("MLEVAL_STORAGE_DIR", defaults.storage_dir)),
     )

@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 
+from app.api.auth import AuthenticationMiddleware
 from app.api.docs import API_DESCRIPTION, TAGS
 from app.api.error_handlers import register_error_handlers
 from app.api.evaluations import router as evaluations_router
@@ -23,6 +24,7 @@ def create_app(settings: Settings | None = None, results: ResultService | None =
     app.state.storage_lifecycle = app.state.storage.lifecycle
     app.state.results = results or ResultService()
     register_error_handlers(app)
+    app.add_middleware(AuthenticationMiddleware)
     app.include_router(evaluations_router)
 
     @app.get("/api/health")

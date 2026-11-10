@@ -8,13 +8,16 @@ def test_defaults_cover_every_required_setting():
     assert s.evaluation_timeout_seconds > 0
     assert s.retention_seconds > 0
     assert s.auth_enabled is False
+    assert s.api_key is None
 
 
 def test_environment_overrides(monkeypatch, tmp_path):
     monkeypatch.setenv("MLEVAL_MAX_UPLOAD_BYTES", "1234")
     monkeypatch.setenv("MLEVAL_AUTH_ENABLED", "true")
+    monkeypatch.setenv("MLEVAL_API_KEY", "test-secret-key")
     monkeypatch.setenv("MLEVAL_STORAGE_DIR", str(tmp_path))
     s = load_settings()
     assert s.max_upload_bytes == 1234
     assert s.auth_enabled is True
+    assert s.api_key == "test-secret-key"
     assert s.storage_dir == tmp_path
