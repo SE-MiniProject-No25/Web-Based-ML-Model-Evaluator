@@ -72,6 +72,8 @@ class EvaluationStore(Protocol):
 
     def update(self, evaluation_id: str, change: Callable[[Evaluation], None]) -> Evaluation | None: ...
 
+    def unfinished(self) -> list[Evaluation]: ...
+
 
 class InMemoryEvaluationStore:
     """Thread-safe store. Callers only ever see copies, so records cannot be mutated from outside."""
@@ -97,6 +99,11 @@ class InMemoryEvaluationStore:
                 return None
             change(record)
             return replace(record)
+
+    def unfinished(self) -> list[Evaluation]:
+        """Copies of the evaluations that are still pending or running."""
+        with self._lock:
+            return [replace(r) for r in self._records.values() if r.status not in TERMINAL_STATUSES]
 
 
 class ResultService:
@@ -132,6 +139,15 @@ class ResultService:
         if evaluation is None:
             raise AppError(ErrorCode.EVALUATION_NOT_FOUND, "Evaluation not found.")
         return evaluation
+
+    def active_paths(self) -> list[Path]:
+        """The stored files of every pending or running evaluation, which the retention cleanup must keep."""
+        return [
+            path
+            for evaluation in self._store.unfinished()
+            for path in (evaluation.model_path, evaluation.dataset_path)
+            if path is not None
+        ]
 
     def mark_running(self, evaluation_id: str) -> Evaluation:
         return self._update(evaluation_id, lambda e: e.move_to(Status.RUNNING))

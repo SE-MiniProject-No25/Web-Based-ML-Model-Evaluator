@@ -27,6 +27,8 @@ class Settings:
     evaluation_memory_limit_bytes: int = 2 * 1024 * 1024 * 1024
     # How long temporary artifacts are kept after an evaluation ends.
     retention_seconds: int = 3600
+    # How often expired artifacts are swept, besides at start-up and after each submission (0 = no timer).
+    cleanup_interval_seconds: int = 300
     # Authentication on evaluation and result endpoints (off by default).
     auth_enabled: bool = False
     # Secret API key required when auth_enabled is True (loaded from MLEVAL_API_KEY).
@@ -58,6 +60,9 @@ def load_settings() -> Settings:
             os.environ.get("MLEVAL_EVALUATION_MEMORY_LIMIT_BYTES", defaults.evaluation_memory_limit_bytes)
         ),
         retention_seconds=int(os.environ.get("MLEVAL_RETENTION_SECONDS", defaults.retention_seconds)),
+        cleanup_interval_seconds=int(
+            os.environ.get("MLEVAL_CLEANUP_INTERVAL_SECONDS", defaults.cleanup_interval_seconds)
+        ),
         auth_enabled=_env_bool("MLEVAL_AUTH_ENABLED", defaults.auth_enabled),
         api_key=os.environ.get("MLEVAL_API_KEY", defaults.api_key),
         storage_dir=Path(os.environ.get("MLEVAL_STORAGE_DIR", defaults.storage_dir)),
