@@ -53,3 +53,16 @@ class EnvProbeModel:
 
     def predict(self, X):
         return [1 if os.environ.get("MLEVAL_TEST_SECRET") else 0] * len(X)
+
+
+class MemoryErrorModel:
+    """Fails the way Python reports running out of memory."""
+
+    def predict(self, X):
+        raise MemoryError("out of memory")
+
+
+class NotCallablePredictModel:
+    """Has an attribute called predict that is not a function."""
+
+    predict = "not callable"

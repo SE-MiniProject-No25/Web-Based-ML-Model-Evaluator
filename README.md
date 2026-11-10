@@ -55,7 +55,7 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 - [Demo Script](planning/Demo_Script.md) — the 5-minute demo, who presents what, and backup screenshots.
-- [Test Report](planning/Test_Report.md) — results of the 25 Test Plan cases, defects and exit criteria.
+- [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3). The earlier Sprint 2 [Test Report](planning/Test_Report.md) is superseded.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
 ## Code Map

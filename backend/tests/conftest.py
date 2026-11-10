@@ -58,3 +58,28 @@ def server_url(tmp_path):
     finally:
         process.kill()
         process.wait()
+
+
+# Test levels used by the Unit Test Report and the System Validation Report (docs/). A file is a system
+# test file when its tests go through the whole HTTP API, start a real server, or run a real model in a
+# child process; everything else tests one component on its own.
+SYSTEM_TEST_FILES = {
+    "test_acceptance.py",
+    "test_ack_time.py",
+    "test_api_download.py",
+    "test_api_status.py",
+    "test_api_submit.py",
+    "test_app.py",
+    "test_demo_script.py",
+    "test_determinism.py",
+    "test_evaluation_limits.py",
+    "test_evaluation_runner.py",
+    "test_failure_paths.py",
+    "test_openapi.py",
+}
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        level = pytest.mark.system if item.path.name in SYSTEM_TEST_FILES else pytest.mark.unit
+        item.add_marker(level)
