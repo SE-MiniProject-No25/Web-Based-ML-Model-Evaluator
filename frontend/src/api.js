@@ -96,3 +96,51 @@ export function getEvaluationStatus(evaluationId) {
     `/api/evaluations/${encodeURIComponent(evaluationId)}`
   );
 }
+
+export async function downloadEvaluation(evaluationId) {
+  if (USE_MOCK) {
+    throw new Error("Download is not supported in mock mode.");
+  }
+
+  let response;
+
+  try {
+    response = await fetch(
+      `/api/evaluations/${encodeURIComponent(evaluationId)}/download`
+    );
+  } catch {
+    throw new Error(
+      "Unable to connect to the server. Please check your connection and try again."
+    );
+  }
+
+  if (!response.ok) {
+    await readJson(response);
+    return;
+  }
+
+  const blob = await response.blob();
+
+  const contentDisposition = response.headers.get(
+    "Content-Disposition"
+  );
+
+  const filenameMatch = contentDisposition?.match(
+    /filename="?([^"]+)"?/
+  );
+
+  const filename =
+    filenameMatch?.[1] || `evaluation-${evaluationId}.json`;
+
+  const downloadUrl = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.URL.revokeObjectURL(downloadUrl);
+}

@@ -857,3 +857,44 @@ footer {
     padding: 11px 12px;
   }
 }
+
+.download-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
+  gap: 12px;
+}
+
+.download-button {
+  background: #159f8b;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 5px 14px rgba(21, 159, 139, 0.2);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.download-button:hover:not(:disabled) {
+  background: #108875;
+  transform: translateY(-2px);
+}
+
+.download-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.download-section .error {
+  color: #dc2626;
+  margin: 0;
+}
