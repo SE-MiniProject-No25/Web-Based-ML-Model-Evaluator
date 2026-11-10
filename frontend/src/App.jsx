@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { createEvaluation, getEvaluationStatus } from "./api";
+import { ApiError, createEvaluation, getEvaluationStatus } from "./api";
 import Papa from "papaparse";
 import "./App.css";
 
@@ -8,7 +7,7 @@ import "./App.css";
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function tooLargeMessage(file) {
-  return `${file.name} is larger than the ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB upload limit.`;
+  return `${file.name} is larger than ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB upload limit.`;
 }
 
 const METRIC_LABELS = {
@@ -29,6 +28,9 @@ function App() {
   const [taskType, setTaskType] = useState("");
   const [targetColumn, setTargetColumn] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [retryable, setRetryable] = useState(false);
+  const [pollAttempt, setPollAttempt] = useState(0);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [furthestStep, setFurthestStep] = useState(1);
@@ -48,10 +50,75 @@ function App() {
     canUpload && taskType && targetColumn
   );
 
+  // Map backend errors to the relevant form control.
+  function mapApiError(err) {
+    const message = err?.message || "An unexpected error occurred.";
+    const code = err?.code || "";
+
+    if (code === "INVALID_MODEL") {
+      return { modelFile: message };
+    }
+
+    if (code === "MALFORMED_DATASET") {
+      return { datasetFile: message };
+    }
+
+    if (code === "INVALID_TARGET_COLUMN") {
+      return { targetColumn: message };
+    }
+
+    if (code === "INVALID_TASK_TYPE") {
+      return { taskType: message };
+    }
+
+    if (
+      code === "UNSUPPORTED_FILE_TYPE" ||
+      code === "FILE_TOO_LARGE"
+    ) {
+      if (/\bmodel\b/i.test(message)) {
+        return { modelFile: message };
+      }
+
+      if (/\bdataset\b/i.test(message)) {
+        return { datasetFile: message };
+      }
+
+      return {};
+    }
+
+    if (
+      code === "MISSING_REQUIRED_FIELD" ||
+      code === "VALIDATION_ERROR"
+    ) {
+      const fieldMatch = message.match(
+        /(?:field\s*['"]?|required field(?:\(s\))?:?\s*)(model|dataset|task_type|target_column)/i
+      );
+
+      if (fieldMatch) {
+        const fieldMap = {
+          model: "modelFile",
+          dataset: "datasetFile",
+          task_type: "taskType",
+          target_column: "targetColumn",
+        };
+
+        const fieldName = fieldMap[fieldMatch[1].toLowerCase()];
+
+        if (fieldName) {
+          return { [fieldName]: message };
+        }
+      }
+    }
+
+    return {};
+  }
+
   function resetEvaluation() {
     setEvaluationId("");
     setEvaluationStatus("");
     setEvaluationError("");
+    setRetryable(false);
+    setFieldErrors({});
     setMetrics(null);
     setResultTaskType("");
     setCurrentStep(1);
@@ -65,6 +132,7 @@ function App() {
     setColumns([]);
     setTargetColumn("");
     setError("");
+    setFieldErrors({});
     resetEvaluation();
 
     if (!file) return;
@@ -131,6 +199,7 @@ function App() {
     const file = event.target.files?.[0];
 
     setError("");
+    setFieldErrors({});
     resetEvaluation();
 
     if (!file) {
@@ -139,7 +208,6 @@ function App() {
     }
 
     const allowedExtensions = [".pkl", ".joblib"];
-
     const isAllowed = allowedExtensions.some((extension) =>
       file.name.toLowerCase().endsWith(extension)
     );
@@ -198,6 +266,8 @@ function App() {
     if (!canConfigure || isEvaluating) return;
 
     setError("");
+    setFieldErrors({});
+    setRetryable(false);
     setEvaluationError("");
     setEvaluationId("");
     setEvaluationStatus("pending");
@@ -217,13 +287,30 @@ function App() {
       setFurthestStep(4);
       setCurrentStep(4);
     } catch (err) {
-      // The request was rejected (validation error, server unreachable): no evaluation exists, so stay on
-      // the review step and show the message there instead of on a results page.
       setEvaluationStatus("");
-      setError(err.message || "Could not start evaluation.");
+
+      const mappedErrors = mapApiError(err);
+      setFieldErrors(mappedErrors);
+      setRetryable(false);
+
+      if (mappedErrors.modelFile || mappedErrors.datasetFile) {
+        setCurrentStep(1);
+      } else if (
+        mappedErrors.taskType ||
+        mappedErrors.targetColumn
+      ) {
+        setCurrentStep(2);
+      }
+
+      setError(
+        Object.keys(mappedErrors).length === 0
+          ? err.message ||
+            "Could not start evaluation. Please check your inputs and try again."
+          : "Please correct the highlighted field(s) and try again."
+      );
     }
   }
-
+    // Poll the backend for evaluation status.
   useEffect(() => {
     if (!evaluationId) return;
 
@@ -241,12 +328,17 @@ function App() {
         if (result.status === "completed") {
           setMetrics(result.metrics || {});
           setResultTaskType(result.task_type || "");
+          setRetryable(false);
           return;
         }
 
         if (result.status === "failed") {
-          // The API returns an error object ({ code, message }); the mock returns a plain string.
-          setEvaluationError(result.error?.message || result.error || "Evaluation failed.");
+          setEvaluationError(
+            result.error?.message ||
+              result.error ||
+              "Evaluation failed."
+          );
+          setRetryable(false);
           return;
         }
 
@@ -255,8 +347,12 @@ function App() {
         if (stopped) return;
 
         setEvaluationStatus("failed");
+        setRetryable(true);
+
         setEvaluationError(
-          err.message || "Unable to retrieve evaluation status."
+          err instanceof ApiError && err.isNetworkError
+            ? "Unable to reach the evaluation server. Check your connection and retry."
+            : err.message || "Unable to retrieve evaluation status."
         );
       }
     }
@@ -267,7 +363,14 @@ function App() {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [evaluationId]);
+  }, [evaluationId, pollAttempt]);
+
+  function retryStatusCheck() {
+    setRetryable(false);
+    setEvaluationError("");
+    setEvaluationStatus("pending");
+    setPollAttempt((attempt) => attempt + 1);
+  }
 
   function formatMetric(value) {
     if (typeof value === "number" && Number.isFinite(value)) {
@@ -301,22 +404,22 @@ function App() {
       {/* WORKFLOW NAVIGATION */}
       <nav className="steps" aria-label="Evaluation workflow">
         {steps.map((step) => (
-  <button
-    key={step.number}
-    type="button"
-    className={`step-button ${
-      currentStep === step.number ? "active" : ""
-    } ${
-      step.number < currentStep ? "completed" : ""
-    }`}
-    disabled={step.number > furthestStep}
-    onClick={() => goToStep(step.number)}
-    aria-current={
-      currentStep === step.number ? "step" : undefined
-    }
-  >
-    {`0${step.number} ${step.label}`}
-  </button>
+          <button
+            key={step.number}
+            type="button"
+            className={`step-button ${
+              currentStep === step.number ? "active" : ""
+            } ${
+              step.number < currentStep ? "completed" : ""
+            }`}
+            disabled={step.number > furthestStep}
+            onClick={() => goToStep(step.number)}
+            aria-current={
+              currentStep === step.number ? "step" : undefined
+            }
+          >
+            {`0${step.number} ${step.label}`}
+          </button>
         ))}
       </nav>
 
@@ -347,7 +450,14 @@ function App() {
                   type="file"
                   accept=".pkl,.joblib"
                   onChange={handleModelChange}
+                  aria-invalid={Boolean(fieldErrors.modelFile)}
                 />
+
+                {fieldErrors.modelFile && (
+                  <span className="error field-error" role="alert">
+                    {fieldErrors.modelFile}
+                  </span>
+                )}
 
                 {modelFile && (
                   <span className="file-info">
@@ -369,7 +479,14 @@ function App() {
                   type="file"
                   accept=".csv,text/csv"
                   onChange={handleDatasetChange}
+                  aria-invalid={Boolean(fieldErrors.datasetFile)}
                 />
+
+                {fieldErrors.datasetFile && (
+                  <span className="error field-error" role="alert">
+                    {fieldErrors.datasetFile}
+                  </span>
+                )}
 
                 {datasetFile && (
                   <span className="file-info">
@@ -380,11 +497,11 @@ function App() {
               </label>
             </div>
 
-            {canUpload && (
-              <p className="success-message">
-                Both files uploaded successfully.
-              </p>
-            )}
+            {canUpload && Object.keys(fieldErrors).length === 0 && (
+  <p className="success-message">
+    Both files uploaded successfully.
+  </p>
+)}
 
             {error && (
               <p className="error" role="alert">{error}</p>
@@ -431,19 +548,53 @@ function App() {
                 <span>Task type</span>
                 <select
                   value={taskType}
-                  onChange={(event) => setTaskType(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.taskType)}
+                  aria-describedby={
+                    fieldErrors.taskType
+                      ? "task-type-error"
+                      : undefined
+                  }
+                  onChange={(event) => {
+                    setTaskType(event.target.value);
+                    setFieldErrors((previous) => ({
+                      ...previous,
+                      taskType: "",
+                    }));
+                  }}
                 >
                   <option value="">Select task type</option>
                   <option value="classification">Classification</option>
                   <option value="regression">Regression</option>
                 </select>
+
+                {fieldErrors.taskType && (
+                  <span
+                    id="task-type-error"
+                    className="error field-error"
+                    role="alert"
+                  >
+                    {fieldErrors.taskType}
+                  </span>
+                )}
               </label>
 
               <label>
                 <span>Target column</span>
                 <select
                   value={targetColumn}
-                  onChange={(event) => setTargetColumn(event.target.value)}
+                  aria-invalid={Boolean(fieldErrors.targetColumn)}
+                  aria-describedby={
+                    fieldErrors.targetColumn
+                      ? "target-column-error"
+                      : undefined
+                  }
+                  onChange={(event) => {
+                    setTargetColumn(event.target.value);
+                    setFieldErrors((previous) => ({
+                      ...previous,
+                      targetColumn: "",
+                    }));
+                  }}
                   disabled={!columns.length}
                 >
                   <option value="">Select target column</option>
@@ -453,6 +604,16 @@ function App() {
                     </option>
                   ))}
                 </select>
+
+                {fieldErrors.targetColumn && (
+                  <span
+                    id="target-column-error"
+                    className="error field-error"
+                    role="alert"
+                  >
+                    {fieldErrors.targetColumn}
+                  </span>
+                )}
               </label>
             </div>
 
@@ -485,8 +646,7 @@ function App() {
             </div>
           </>
         )}
-
-        {/* STEP 3: RUN */}
+                {/* STEP 3: RUN */}
         {currentStep === 3 && (
           <>
             <div className="section-heading">
@@ -602,82 +762,99 @@ function App() {
                   <h4>Evaluation metrics</h4>
 
                   {metrics && Object.keys(metrics).length > 0 ? (
-  <>
-    <h4>Metrics summary</h4>
+                    <>
+                      <h4>Metrics summary</h4>
 
-    <div className="metrics-table-wrapper">
-      <table className="metrics-table">
-        <thead>
-          <tr>
-            <th>Metric</th>
-            <th>Value</th>
-          </tr>
-        </thead>
+                      <div className="metrics-table-wrapper">
+                        <table className="metrics-table">
+                          <thead>
+                            <tr>
+                              <th>Metric</th>
+                              <th>Value</th>
+                            </tr>
+                          </thead>
 
-        <tbody>
-          {Object.entries(metrics).map(([name, value]) => (
-            <tr key={name}>
-              <td>{METRIC_LABELS[name] || name}</td>
-              <td>{formatMetric(value)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                          <tbody>
+                            {Object.entries(metrics).map(([name, value]) => (
+                              <tr key={name}>
+                                <td>{METRIC_LABELS[name] || name}</td>
+                                <td>{formatMetric(value)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
-    <h4>Metrics visualization</h4>
+                      <h4>Metrics visualization</h4>
 
-    <div className="metrics-chart">
-      {Object.entries(metrics).map(([name, value]) => {
-        const numericValues = Object.values(metrics).filter(
-          (item) => typeof item === "number" && Number.isFinite(item)
-        );
+                      <div className="metrics-chart">
+                        {Object.entries(metrics).map(([name, value]) => {
+                          const numericValues = Object.values(metrics).filter(
+                            (item) =>
+                              typeof item === "number" &&
+                              Number.isFinite(item)
+                          );
 
-        const maxValue = Math.max(
-          ...numericValues.map((item) => Math.abs(item)),
-          0
-        );
+                          const maxValue = Math.max(
+                            ...numericValues.map((item) => Math.abs(item)),
+                            0
+                          );
 
-        const barWidth =
-          typeof value === "number" && Number.isFinite(value) && maxValue > 0
-            ? (Math.abs(value) / maxValue) * 100
-            : 0;
+                          const barWidth =
+                            typeof value === "number" &&
+                            Number.isFinite(value) &&
+                            maxValue > 0
+                              ? (Math.abs(value) / maxValue) * 100
+                              : 0;
 
-        return (
-          <div className="chart-row" key={name}>
-            <span className="chart-label">
-              {METRIC_LABELS[name] || name}
-            </span>
+                          return (
+                            <div className="chart-row" key={name}>
+                              <span className="chart-label">
+                                {METRIC_LABELS[name] || name}
+                              </span>
 
-            <div
-              className="chart-track"
-              role="img"
-              aria-label={`${METRIC_LABELS[name] || name}: ${formatMetric(value)}`}
-            >
-              <div
-                className="chart-bar"
-                style={{ width: `${barWidth}%` }}
-              />
-            </div>
+                              <div
+                                className="chart-track"
+                                role="img"
+                                aria-label={`${
+                                  METRIC_LABELS[name] || name
+                                }: ${formatMetric(value)}`}
+                              >
+                                <div
+                                  className="chart-bar"
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
 
-            <strong className="chart-value">
-              {formatMetric(value)}
-            </strong>
-          </div>
-        );
-      })}
-    </div>
-  </>
-) : (
-  <p>No metrics were returned by the backend.</p>
-)}
+                              <strong className="chart-value">
+                                {formatMetric(value)}
+                              </strong>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <p>No metrics were returned by the backend.</p>
+                  )}
                 </div>
               )}
 
               {evaluationStatus === "failed" && (
-                <p className="error" role="alert">
-                  {evaluationError}
-                </p>
+                <>
+                  <p className="error" role="alert">
+                    {evaluationError}
+                  </p>
+
+                  {retryable && (
+                    <button
+                      type="button"
+                      onClick={retryStatusCheck}
+                    >
+                      Retry connection
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
