@@ -602,17 +602,75 @@ function App() {
                   <h4>Evaluation metrics</h4>
 
                   {metrics && Object.keys(metrics).length > 0 ? (
-                    <div className="metrics-grid">
-                      {Object.entries(metrics).map(([name, value]) => (
-                        <div className="metric-card" key={name}>
-                          <span>{METRIC_LABELS[name] || name}</span>
-                          <strong>{formatMetric(value)}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No metrics were returned by the backend.</p>
-                  )}
+  <>
+    <h4>Metrics summary</h4>
+
+    <div className="metrics-table-wrapper">
+      <table className="metrics-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {Object.entries(metrics).map(([name, value]) => (
+            <tr key={name}>
+              <td>{METRIC_LABELS[name] || name}</td>
+              <td>{formatMetric(value)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Metrics visualization</h4>
+
+    <div className="metrics-chart">
+      {Object.entries(metrics).map(([name, value]) => {
+        const numericValues = Object.values(metrics).filter(
+          (item) => typeof item === "number" && Number.isFinite(item)
+        );
+
+        const maxValue = Math.max(
+          ...numericValues.map((item) => Math.abs(item)),
+          0
+        );
+
+        const barWidth =
+          typeof value === "number" && Number.isFinite(value) && maxValue > 0
+            ? (Math.abs(value) / maxValue) * 100
+            : 0;
+
+        return (
+          <div className="chart-row" key={name}>
+            <span className="chart-label">
+              {METRIC_LABELS[name] || name}
+            </span>
+
+            <div
+              className="chart-track"
+              role="img"
+              aria-label={`${METRIC_LABELS[name] || name}: ${formatMetric(value)}`}
+            >
+              <div
+                className="chart-bar"
+                style={{ width: `${barWidth}%` }}
+              />
+            </div>
+
+            <strong className="chart-value">
+              {formatMetric(value)}
+            </strong>
+          </div>
+        );
+      })}
+    </div>
+  </>
+) : (
+  <p>No metrics were returned by the backend.</p>
+)}
                 </div>
               )}
 
