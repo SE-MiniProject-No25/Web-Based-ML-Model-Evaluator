@@ -58,6 +58,11 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 - [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3). The earlier Sprint 2 [Test Report](planning/Test_Report.md) is superseded.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
+## Demo
+
+- **[Sprint 2 demo video](deliverable-2/Sprint2_Demo.mp4)** (2 minutes): a screen recording of the working product end to end, with [what each part shows](deliverable-2/README.md#what-the-video-shows). The earlier [Sprint 1 video](deliverable-1/Sprint1_Demo.mp4) shows the first working version.
+- **[Demo inputs](deliverable-2/demo-inputs/)**: six good models and datasets and nine bad inputs to try in the interface, with what each one shows. The [demo script](planning/Demo_Script.md) is the 5-minute live version.
+
 ## Code Map
 
 Each code folder maps to one component in [Architecture §3](deliverable-1/03_Architecture_and_Design.md#3-component-description). The boundaries are enforced by [`backend/tests/test_architecture.py`](backend/tests/test_architecture.py), which runs in CI and fails if a lower layer imports an upper one.
@@ -151,10 +156,9 @@ Reference models and datasets to try are in `backend/tests/fixtures/`: `classifi
 
 The frontend needs nothing beyond this section. In development Vite forwards every `/api/...` request to the backend on port 8000 (`frontend/vite.config.js`), and `frontend/src/api.js` calls the three endpoints above. Set `VITE_USE_MOCK=true` to use the in-memory mock instead (for example when the backend is not running); leave it unset to use the real API. Poll the status endpoint about once a second until the status is `completed` or `failed`.
 
-### Known gaps in the API
+### Authentication
 
-- **Authentication** (`401 UNAUTHENTICATED`) is documented but not enforced yet (US-11).
-- **Unknown URLs and unsupported methods** return FastAPI's default `{"detail": ...}` body instead of the error format above (US-09).
+Optional and off by default. Start the backend with `MLEVAL_AUTH_ENABLED=true` and `MLEVAL_API_KEY=<a secret>`; every request to the evaluation endpoints must then carry the key, either as `X-API-Key: <key>` or as `Authorization: Bearer <key>`, and is otherwise answered with `401 UNAUTHENTICATED`. `/api/health` stays open. If authentication is enabled with no key configured, every protected request is rejected. Every error, including unknown URLs (`404`), unsupported methods (`405`) and unexpected server errors (`500`), uses the `{"error": {"code", "message"}}` format.
 
 ## Deliverable 1
 

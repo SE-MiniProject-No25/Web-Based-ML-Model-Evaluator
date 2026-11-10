@@ -18,9 +18,12 @@ traces or server paths. Errors that happen *after* the `202` (`INCOMPATIBLE_INPU
 `RESOURCE_LIMIT_EXCEEDED`, `EVALUATION_FAILED`) are not HTTP errors: the evaluation's status becomes
 `failed` and the same `error` object is returned by the status endpoint.
 
-**Known gaps:** authentication (`401 UNAUTHENTICATED`) is documented but not enforced yet (US-11).
-Unknown URLs and unsupported HTTP methods still return FastAPI's default `{"detail": ...}` body
-instead of the error format above (US-09).
+**Authentication is optional and off by default.** Set `MLEVAL_AUTH_ENABLED=true` and `MLEVAL_API_KEY` to
+switch it on; then send the key in the `X-API-Key` header or as `Authorization: Bearer <key>`. A request
+without a valid key is answered with `401 UNAUTHENTICATED`. `/api/health` stays open.
+
+Every error uses the format above, including unknown URLs (`404 NOT_FOUND`), unsupported methods
+(`405 METHOD_NOT_ALLOWED`) and unexpected server errors (`500 INTERNAL_SERVER_ERROR`).
 """
 
 TAGS = [{"name": "evaluations", "description": "Submit an evaluation, follow it, and download its result."}]
@@ -41,7 +44,7 @@ def error_response(description: str, **examples: str) -> dict:
 
 
 UNAUTHENTICATED = error_response(
-    "Authentication is enabled and the request has no valid credentials (not enforced yet, US-11).",
+    "Authentication is enabled and the request has no valid API key (`X-API-Key` or `Authorization: Bearer`).",
     UNAUTHENTICATED="Authentication is required.",
 )
 
