@@ -30,6 +30,20 @@ const METRIC_LABELS = {
   r2: "R²",
 };
 
+// Plain-language explanations for people who are new to machine learning (usability finding, US-18).
+const METRIC_HELP = {
+  accuracy: "The share of predictions that were correct. Higher is better; 1 is perfect.",
+  precision:
+    "Of everything the model labelled positive, how much really was positive. Higher means fewer false alarms.",
+  recall:
+    "Of everything that really was positive, how much the model found. Higher means fewer missed cases.",
+  f1: "One score that balances precision and recall. Higher is better; 1 is perfect.",
+  mae: "The average size of the model's mistakes, in the same units as the value being predicted. Lower is better; 0 is perfect.",
+  mse: "The average of the squared mistakes. Squaring makes big mistakes count much more. Lower is better.",
+  rmse: "The square root of MSE, so it is in the same units as the value being predicted. Like MAE, but it punishes big mistakes more. Lower is better.",
+  r2: "How much of the variation in the data the model explains. 1 is perfect; 0 is no better than always guessing the average; below 0 is worse than that.",
+};
+
 function App() {
   const [modelFile, setModelFile] = useState(null);
   const [datasetFile, setDatasetFile] = useState(null);
@@ -805,6 +819,7 @@ async function handleDownload() {
                             <tr>
                               <th>Metric</th>
                               <th>Value</th>
+                              <th>What it means</th>
                             </tr>
                           </thead>
 
@@ -813,11 +828,22 @@ async function handleDownload() {
                               <tr key={name}>
                                 <td>{METRIC_LABELS[name] || name}</td>
                                 <td>{formatMetric(value)}</td>
+                                <td className="metric-help">
+                                  {METRIC_HELP[name] || ""}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
+
+                      {resultTaskType === "classification" && (
+                        <p className="help">
+                          With two classes, precision, recall and F1 describe
+                          the class labelled 1. With more than two classes
+                          they are averaged across the classes.
+                        </p>
+                      )}
 
                       <h4>Metrics visualization</h4>
 
@@ -843,7 +869,10 @@ async function handleDownload() {
 
                           return (
                             <div className="chart-row" key={name}>
-                              <span className="chart-label">
+                              <span
+                                className="chart-label"
+                                title={METRIC_HELP[name]}
+                              >
                                 {METRIC_LABELS[name] || name}
                               </span>
 
