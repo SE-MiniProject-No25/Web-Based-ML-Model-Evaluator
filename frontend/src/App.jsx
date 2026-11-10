@@ -1,7 +1,16 @@
+
 import { useEffect, useState } from "react";
-import { ApiError, createEvaluation, getEvaluationStatus } from "./api";
+
+import {
+  ApiError,
+  createEvaluation,
+  getEvaluationStatus,
+  downloadEvaluation,
+} from "./api";
+
 import Papa from "papaparse";
 import "./App.css";
+
 
 // Matches the backend's default upload limit. This is only quick feedback: the server enforces the real limit.
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
@@ -40,6 +49,8 @@ function App() {
   const [evaluationError, setEvaluationError] = useState("");
   const [metrics, setMetrics] = useState(null);
   const [resultTaskType, setResultTaskType] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
 
   const isEvaluating =
     evaluationStatus === "pending" || evaluationStatus === "running";
@@ -371,6 +382,29 @@ function App() {
     setEvaluationStatus("pending");
     setPollAttempt((attempt) => attempt + 1);
   }
+
+async function handleDownload() {
+  if (
+    !evaluationId ||
+    evaluationStatus !== "completed" ||
+    isDownloading
+  ) {
+    return;
+  }
+
+  setIsDownloading(true);
+  setDownloadError("");
+
+  try {
+    await downloadEvaluation(evaluationId);
+  } catch (err) {
+    setDownloadError(
+      err.message || "Unable to download evaluation results. Please try again."
+    );
+  } finally {
+    setIsDownloading(false);
+  }
+}
 
   function formatMetric(value) {
     if (typeof value === "number" && Number.isFinite(value)) {
@@ -839,6 +873,32 @@ function App() {
                   )}
                 </div>
               )}
+
+{evaluationStatus === "completed" && (
+
+<div className="download-section">
+  <button
+    type="button"
+    className="download-button"
+    onClick={handleDownload}
+    disabled={isDownloading}
+  >
+    {isDownloading ? (
+      "Downloading..."
+    ) : (
+      <>
+        Download Results <span aria-hidden="true">↓</span>
+      </>
+    )}
+  </button>
+
+  {downloadError && (
+    <p className="error" role="alert">
+      {downloadError}
+    </p>
+  )}
+</div>
+)}
 
               {evaluationStatus === "failed" && (
                 <>
