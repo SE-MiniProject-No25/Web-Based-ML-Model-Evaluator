@@ -58,6 +58,11 @@ Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
 - [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3). The earlier Sprint 2 [Test Report](planning/Test_Report.md) is superseded.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
+## Demo
+
+- **[Sprint 2 demo video](deliverable-2/Sprint2_Demo.mp4)** (2 minutes): the working product end to end, with the [shot list and narration](deliverable-2/Sprint2_Demo_Script.md). The earlier [Sprint 1 video](deliverable-1/Sprint1_Demo.mp4) shows the first working version.
+- **[Demo inputs](deliverable-2/demo-inputs/)**: six good models and datasets and nine bad inputs to try in the interface, with what each one shows. The [demo script](planning/Demo_Script.md) is the 5-minute live version.
+
 ## Code Map
 
 Each code folder maps to one component in [Architecture §3](deliverable-1/03_Architecture_and_Design.md#3-component-description). The boundaries are enforced by [`backend/tests/test_architecture.py`](backend/tests/test_architecture.py), which runs in CI and fails if a lower layer imports an upper one.
