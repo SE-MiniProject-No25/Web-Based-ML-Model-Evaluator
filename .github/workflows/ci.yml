@@ -7,7 +7,12 @@ on:
 
 jobs:
   backend:
-    runs-on: ubuntu-latest
+    # Windows as well as Linux: the Windows-only import bug fixed in #44 got through when CI ran on Linux only.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: backend
@@ -21,5 +26,16 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Lint
         run: ruff check .
-      - name: Test
-        run: pytest
+      - name: Test, with line and branch coverage
+        run: pytest --cov --cov-report=json --cov-report=html --cov-report=term
+      - name: Check the coverage thresholds (90% line, 85% branch)
+        run: python scripts/check_coverage.py
+      - name: Keep the coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: |
+            backend/coverage.json
+            backend/htmlcov/
+          if-no-files-found: ignore
