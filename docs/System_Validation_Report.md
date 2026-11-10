@@ -4,7 +4,7 @@
 | | |
 |---|---|
 | **Date** | 10 November 2026 |
-| **Code** | `main` at commit `a6669ab3`, plus the tests and documents added by the pull request that contains these reports |
+| **Code** | `main` at commit `8200b89f`, plus the tests and documents added by the pull request that contains these reports |
 | **Environment** | Windows 11, Python 3.13.7, pytest 9.1.1, coverage.py 7.17.2, FastAPI 0.116.2, scikit-learn 1.9.1 |
 | **Reproduce** | `cd backend`, `pip install -r requirements-dev.txt`, `python scripts/generate_reports.py` |
 
@@ -19,7 +19,7 @@ Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases,
 |---|---|
 | **Pass** | **25 of 25**: TC-01, TC-02, TC-03, TC-04, TC-05, TC-06, TC-07, TC-08, TC-09, TC-10, TC-11, TC-12, TC-13, TC-14, TC-15, TC-16, TC-17, TC-18, TC-19, TC-20, TC-21, TC-22, TC-23, TC-24, TC-25. 24 are automated; TC-21 is a manual test with one participant |
 | **Fail** | 0 |
-| Of those, with a limitation | TC-12 (the API download works; the interface has no download control), TC-15 (memory limit not enforced on Windows), TC-18 (cleanup runs on the next submission, not on a timer), TC-21 (see section 5) |
+| Of those, with a limitation | TC-15 (memory limit not enforced on Windows), TC-18 (cleanup runs on the next submission, not on a timer), TC-21 (see section 5) |
 
 The automated suite has 288 tests: 286 passed, 0 failed, 2 skipped (the memory-limit tests only run on Linux, in CI). Since the previous report, authentication (TC-17) and cleanup of temporary files (TC-18) have been built and now pass, so the two failures recorded then are closed.
 
@@ -38,7 +38,7 @@ The automated suite has 288 tests: 286 passed, 0 failed, 2 skipped (the memory-l
 | TC-09 | Regression metrics | Pass | 2/2 |  |
 | TC-10 | Status lifecycle | Pass | 2/2 |  |
 | TC-11 | Incompatible inputs | Pass | 3/3 |  |
-| TC-12 | Download | Pass | 2/2 | Download works through the API. **The interface has no download control (DEF-09).** |
+| TC-12 | Download | Pass | 2/2 | Download works through the API and through the interface's Download Results button (section 6). |
 | TC-13 | Path-like filename | Pass | 11/11 |  |
 | TC-14 | Malformed model | Pass | 4/4 |  |
 | TC-15 | Resource limits | Pass | 2/3, 1 skipped | Time limit proven end to end; memory limit proven on Linux (CI) and not enforced on Windows (DEF-04). |
@@ -75,7 +75,7 @@ The usability test is written up in [`deliverable-1/usability-testing/US-22_Usab
 
 Two things in that report need correcting before it is relied on:
 
-- It says the participant "did not notice the download control", but **the interface has no download control** (US-17 is not built), so there was nothing to notice. Either a different build was tested or the line should be removed.
+- It says the participant "did not notice the download control". The interface only gained a download button on 10 November (pull request #62), and the report has no date, so it cannot be tied to a build; if an earlier build was tested there was nothing to notice. The author should say which build was used.
 - The test date is still the placeholder `[Enter actual test date]`.
 
 With one participant this is an indication, not a statistically meaningful result. TC-21 is recorded as a **pass** for the primary workflow, with those caveats (DEF-07).
@@ -87,7 +87,9 @@ The browser half of TC-01, TC-02 and TC-07 has no automated test. The interface 
 - After choosing a model and a CSV, the Configure step lists the detected columns.
 - With a file missing, the Next button is disabled, so an empty submission cannot be sent from the page.
 - A model or CSV over 10 MB is refused in the browser with a size message.
-- A classification run and a regression run completed and displayed their metrics (screenshots in `planning/demo/`).
+- A classification run and a regression run completed and displayed their metrics in a table and a bar chart (screenshots in `planning/demo/`).
+- **Download Results** appears only once the evaluation has completed; clicking it saved `evaluation-<id>.json` with every field in the specification and the same accuracy as the screen (0.9625).
+- With the backend stopped, submitting shows "The evaluation server is temporarily unavailable" and the user can try again; a server-side rejection (a malformed CSV) returns the user to the Upload step with the server's message and "Please correct the highlighted field(s)".
 - A mismatched dataset ended *failed* with a message naming the missing and unused columns; a corrupt model and a malformed CSV were rejected with a plain message on the review step.
 - With the backend stopped, submitting keeps the user on the review step with an error and the button usable.
 
@@ -111,7 +113,7 @@ Accepted limitation, documented in the README: a model file is a pickle and runs
 | Criterion | Met? |
 |---|---|
 | All mandatory test cases have been executed | Yes. All 25 were executed; TC-21 as a manual test. |
-| Critical functional requirements have passing tests or documented defects | Yes. FR-01 to FR-20 pass at the API; FR-15 has a documented gap in the interface (DEF-09). |
+| Critical functional requirements have passing tests or documented defects | Yes. FR-01 to FR-20 pass at the API, and FR-15 also in the interface (Download Results button). |
 | Security validation cases have been executed | Yes. TC-03, TC-04, TC-13 to TC-18 and TC-23 all pass. |
 | Traceability is complete | Yes. All 25 cases map to tests or a manual record, checked automatically. |
 | Unresolved defects are documented with severity and status | Yes, section 8. |
@@ -128,9 +130,9 @@ The exit criteria are met. Open defects are low or medium severity, except the a
 | DEF-04 | Memory limit not enforced on Windows | Medium | Accepted, documented in the README |
 | DEF-05 | Acknowledgement margin is small on Windows (1.89 s of 2 s), dominated by the model check before the `202` | Low | Open, monitor |
 | DEF-06 | A malicious model still runs code with the server user's privileges (pickle) | High (inherent) | Accepted, documented |
-| DEF-07 | The usability report names a download control that does not exist and has no test date | Low | Open, owner Akshya |
+| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | Open, owner Akshya |
 | DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |
-| DEF-09 | The interface has no control to download results (US-17), so TC-12 is only met through the API | Medium | Open, owner Akshath |
+| DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |
 | DEF-10 | The retention cleanup does not skip files of an evaluation that is still running. With the defaults (retention 3600 s, evaluation limit 60 s) this cannot happen, but a retention shorter than a run could delete files mid-evaluation | Low | Open, owner Akash |
 
 ## 10. Changes to test cases

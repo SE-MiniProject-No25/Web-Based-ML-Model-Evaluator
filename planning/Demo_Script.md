@@ -70,11 +70,11 @@ Put a File Explorer window open at `backend/tests/fixtures/` so choosing files i
 *Say:* "These match the known values for this reference model, which our tests check automatically."
 
 ### Part 2 – Download the result (Adyanth, 30 s) – UC-03
-Open http://127.0.0.1:8000/docs (the interactive API documentation). Open `GET /api/evaluations/{evaluation_id}/download`, click *Try it out*, paste the **Evaluation ID** from the results page, and *Execute*. *Expect:* `200` and a JSON result with the ID, task type, target column, filenames, metrics and timestamps; the response header says `attachment`.
+On the results page, click **Download Results**. *Expect:* the browser saves `evaluation-<id>.json`; open it to show the ID, task type, target column, filenames, metrics and timestamps.
 
 *Say:* "The result downloads as a file. A result that isn't finished yet answers 409, and an unknown ID answers 404."
 
-> **If the interface already has a Download button (US-17), use that instead** and say so. At the time of writing the button is not merged, so use the API page as above.
+> **Backup if the button misbehaves:** open http://127.0.0.1:8000/docs, open `GET /api/evaluations/{evaluation_id}/download`, click *Try it out*, paste the **Evaluation ID** from the results page, and *Execute*. *Expect* `200` with the same JSON and an `attachment` header.
 
 ### Part 3 – A rejected input (Akash, 40 s) – UC-02
 Click *New evaluation*. Choose `classification/model.joblib` and **`negative/malformed.csv`**, configure Classification / `label`, and run it. *Expect:* the page stays on the review step and shows **"The dataset file contains ragged rows with inconsistent column counts."**
@@ -104,9 +104,9 @@ curl -s -X POST http://127.0.0.1:8000/api/evaluations -F model=@backend/tests/fi
 *Expect* `415 UNSUPPORTED_FILE_TYPE`. And a file named `../../evil.csv` is stored under a random name, so it cannot reach outside the storage folder.
 
 ### Part 6 – Wrap-up (Adyanth, 30 s)
-*Say:* "We wrote a test report for all 25 test cases in the Test Plan: 22 pass. Two security cases fail because the features are not built yet: authentication, and deleting uploaded files after a retention period. They are recorded as defects with owners. One usability test with a new user is still to do."
+*Say:* "We ran all 25 test cases in the Test Plan and they pass: 24 automated and one manual usability test. The automated suite has 288 tests with 98% line coverage. Known limitations are written down: the memory limit is only enforced on Linux and macOS, uploaded files are cleaned up when a new evaluation is submitted rather than on a timer, and the interface has no automated tests."
 
-Do not claim authentication, automatic cleanup of uploads, or a download button in the interface unless those have been merged and the report updated.
+Do not claim anything that is not in the [System Validation Report](../docs/System_Validation_Report.md); for example, cleanup of uploads runs when a new evaluation is submitted, not on a timer, and the usability test had one participant.
 
 ## 4. If something goes wrong
 

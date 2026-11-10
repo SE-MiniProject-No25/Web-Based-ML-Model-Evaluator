@@ -4,7 +4,7 @@
 | | |
 |---|---|
 | **Date** | 10 November 2026 |
-| **Code** | `main` at commit `a6669ab3`, plus the tests and documents added by the pull request that contains these reports |
+| **Code** | `main` at commit `8200b89f`, plus the tests and documents added by the pull request that contains these reports |
 | **Environment** | Windows 11, Python 3.13.7, pytest 9.1.1, coverage.py 7.17.2, FastAPI 0.116.2, scikit-learn 1.9.1 |
 | **Reproduce** | `cd backend`, `pip install -r requirements-dev.txt`, `python scripts/generate_reports.py` |
 
