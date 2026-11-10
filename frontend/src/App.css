@@ -785,9 +785,22 @@ footer {
   color: var(--text);
 }
 
-.metrics-table td:last-child {
+.metrics-table td:nth-child(2) {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Plain-language explanation of each metric (usability finding, US-18) */
+.metrics-table td.metric-help {
+  min-width: 220px;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.metrics-table-wrapper + .help {
+  margin-top: 10px;
 }
 
 .metrics-table tbody tr:last-child td {
@@ -855,6 +868,40 @@ footer {
   .metrics-table th,
   .metrics-table td {
     padding: 11px 12px;
+  }
+}
+
+/* On narrow screens, show each metric as name and value with the explanation underneath, so nothing is
+   hidden behind sideways scrolling. */
+@media (max-width: 560px) {
+  .metrics-table thead {
+    display: none;
+  }
+
+  .metrics-table,
+  .metrics-table tbody {
+    display: block;
+  }
+
+  .metrics-table tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .metrics-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .metrics-table td {
+    padding: 4px 12px;
+    border-bottom: none;
+  }
+
+  .metrics-table td.metric-help {
+    grid-column: 1 / -1;
+    min-width: 0;
   }
 }
 
