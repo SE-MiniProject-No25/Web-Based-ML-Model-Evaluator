@@ -9,6 +9,7 @@ import {
 } from "./api";
 
 import Papa from "papaparse";
+import { CHART_SCALES, METRIC_HELP, METRIC_LABELS, chartWidth } from "./metrics";
 import "./App.css";
 
 
@@ -18,31 +19,6 @@ const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 function tooLargeMessage(file) {
   return `${file.name} is larger than ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB upload limit.`;
 }
-
-const METRIC_LABELS = {
-  accuracy: "Accuracy",
-  precision: "Precision",
-  recall: "Recall",
-  f1: "F1-score",
-  mae: "MAE",
-  mse: "MSE",
-  rmse: "RMSE",
-  r2: "R²",
-};
-
-// Plain-language explanations for people who are new to machine learning (usability finding, US-18).
-const METRIC_HELP = {
-  accuracy: "The share of predictions that were correct. Higher is better; 1 is perfect.",
-  precision:
-    "Of everything the model labelled positive, how much really was positive. Higher means fewer false alarms.",
-  recall:
-    "Of everything that really was positive, how much the model found. Higher means fewer missed cases.",
-  f1: "One score that balances precision and recall. Higher is better; 1 is perfect.",
-  mae: "The average size of the model's mistakes, in the same units as the value being predicted. Lower is better; 0 is perfect.",
-  mse: "The average of the squared mistakes. Squaring makes big mistakes count much more. Lower is better.",
-  rmse: "The square root of MSE, so it is in the same units as the value being predicted. Like MAE, but it punishes big mistakes more. Lower is better.",
-  r2: "How much of the variation in the data the model explains. 1 is perfect; 0 is no better than always guessing the average; below 0 is worse than that.",
-};
 
 function App() {
   const [modelFile, setModelFile] = useState(null);
@@ -180,6 +156,17 @@ function App() {
 
       complete: (results) => {
         const headers = results.data?.[0];
+        const delimiter = results.meta?.delimiter;
+
+        // Papa Parse detects the separator, but the evaluation reads comma-separated files only.
+        if (delimiter && delimiter !== "," && headers?.length > 1) {
+          const name = delimiter === ";" ? "semicolons" : delimiter === "\t" ? "tabs" : `"${delimiter}"`;
+          setError(
+            `The CSV must be comma-separated, but this file uses ${name}. Save it again as a comma-separated CSV.`
+          );
+          event.target.value = "";
+          return;
+        }
 
         if (!headers || !Array.isArray(headers) || headers.length === 0) {
           setError("The CSV is empty or has no readable header row.");
@@ -840,32 +827,20 @@ async function handleDownload() {
                       {resultTaskType === "classification" && (
                         <p className="help">
                           With two classes, precision, recall and F1 describe
-                          the class labelled 1. With more than two classes
-                          they are averaged across the classes.
+                          the positive class: 1, or for other labels the one
+                          that sorts last (for example "yes" over "no"). With
+                          more than two classes they are averaged across the
+                          classes.
                         </p>
                       )}
 
                       <h4>Metrics visualization</h4>
 
                       <div className="metrics-chart">
-                        {Object.entries(metrics).map(([name, value]) => {
-                          const numericValues = Object.values(metrics).filter(
-                            (item) =>
-                              typeof item === "number" &&
-                              Number.isFinite(item)
-                          );
-
-                          const maxValue = Math.max(
-                            ...numericValues.map((item) => Math.abs(item)),
-                            0
-                          );
-
-                          const barWidth =
-                            typeof value === "number" &&
-                            Number.isFinite(value) &&
-                            maxValue > 0
-                              ? (Math.abs(value) / maxValue) * 100
-                              : 0;
+                        {Object.entries(metrics)
+                          .filter(([name]) => name in CHART_SCALES)
+                          .map(([name, value]) => {
+                          const barWidth = chartWidth(name, value, metrics);
 
                           return (
                             <div className="chart-row" key={name}>
@@ -896,6 +871,14 @@ async function handleDownload() {
                           );
                         })}
                       </div>
+
+                      {resultTaskType === "regression" && (
+                        <p className="help">
+                          R² is drawn from 0 to 1. MAE and RMSE share one scale,
+                          in the units of the predicted value. MSE is in squared
+                          units, so it is shown in the table only.
+                        </p>
+                      )}
                     </>
                   ) : (
                     <p>No metrics were returned by the backend.</p>

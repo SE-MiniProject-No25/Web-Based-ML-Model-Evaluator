@@ -118,3 +118,55 @@ def test_a_positive_memory_limit_is_applied_on_posix(monkeypatch):
     worker._limit_memory(123456789)
 
     assert calls == [(resource.RLIMIT_AS, (123456789, 123456789))]
+
+
+# --- data problems found in the debugging pass (TEST-11) ------------------------------------------
+
+
+def rewrite(data, change) -> None:
+    lines = data.read_text().splitlines()
+    data.write_text("\n".join(change(lines)) + "\n")
+
+
+def test_a_header_only_dataset_is_reported_as_having_no_rows(monkeypatch, tmp_path):
+    model, data = write_classification_fixture(tmp_path)
+    rewrite(data, lambda lines: lines[:1])
+
+    assert run_worker(monkeypatch, tmp_path, model, data)["reason"] == "no_rows"
+
+
+def test_empty_target_cells_are_counted(monkeypatch, tmp_path):
+    model, data = write_classification_fixture(tmp_path)
+    rewrite(data, lambda lines: [lines[0], lines[1].rsplit(",", 1)[0] + ","] + lines[2:])
+
+    outcome = run_worker(monkeypatch, tmp_path, model, data)
+
+    assert outcome["code"] == "INCOMPATIBLE_INPUTS"
+    assert (outcome["reason"], outcome["count"]) == ("empty_target", 1)
+
+
+def test_spaces_and_a_byte_order_mark_in_the_header_are_ignored(monkeypatch, tmp_path):
+    model, data = write_classification_fixture(tmp_path)
+    lines = data.read_text(encoding="utf-8").splitlines()
+    header = "﻿" + lines[0].replace(",", ", ")
+    data.write_text("\n".join([header, *lines[1:]]), encoding="utf-8")
+
+    assert run_worker(monkeypatch, tmp_path, model, data, target=" label ")["ok"] is True
+
+
+@pytest.mark.parametrize(("value", "reason"), [("", "empty_values"), ("unknown", "text_values")])
+def test_a_model_that_fails_on_bad_cells_names_the_columns(monkeypatch, tmp_path, value, reason):
+    model, data = write_classification_fixture(tmp_path)
+    rewrite(data, lambda lines: [lines[0], f"{value},{lines[1].split(',', 1)[1]}"] + lines[2:])  # column a
+
+    outcome = run_worker(monkeypatch, tmp_path, model, data)
+
+    assert (outcome["code"], outcome["reason"], outcome["columns"]) == ("INCOMPATIBLE_INPUTS", reason, ["a"])
+
+
+def test_a_model_that_fails_on_clean_data_is_still_a_generic_failure(monkeypatch, tmp_path):
+    _, data = write_classification_fixture(tmp_path)
+    model = tmp_path / "exploding.joblib"
+    joblib.dump(ExplodingModel(), model)
+
+    assert run_worker(monkeypatch, tmp_path, model, data)["code"] == "EVALUATION_FAILED"
