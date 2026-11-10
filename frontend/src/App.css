@@ -752,3 +752,108 @@ footer {
 .app h4 {
   color: var(--navy);
 }
+/* US-15: Evaluation results table */
+
+.metrics-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.metrics-table th,
+.metrics-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.metrics-table th {
+  background: #f3f8f7;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.metrics-table td {
+  color: var(--text);
+}
+
+.metrics-table td:last-child {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.metrics-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* US-15: Metrics bar chart */
+
+.metrics-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 18px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fbfdfd;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) 85px;
+  align-items: center;
+  gap: 14px;
+}
+
+.chart-label {
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chart-track {
+  height: 13px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e8eff0;
+}
+
+.chart-bar {
+  height: 100%;
+  min-width: 0;
+  border-radius: 20px;
+  background: linear-gradient(90deg, var(--teal), #65c5b2);
+  transition: width 0.4s ease;
+}
+
+.chart-value {
+  color: var(--navy);
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .chart-row {
+    grid-template-columns: 75px minmax(0, 1fr) 70px;
+    gap: 8px;
+  }
+
+  .metrics-chart {
+    padding: 14px;
+  }
+
+  .metrics-table th,
+  .metrics-table td {
+    padding: 11px 12px;
+  }
+}
