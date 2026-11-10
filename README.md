@@ -151,10 +151,9 @@ Reference models and datasets to try are in `backend/tests/fixtures/`: `classifi
 
 The frontend needs nothing beyond this section. In development Vite forwards every `/api/...` request to the backend on port 8000 (`frontend/vite.config.js`), and `frontend/src/api.js` calls the three endpoints above. Set `VITE_USE_MOCK=true` to use the in-memory mock instead (for example when the backend is not running); leave it unset to use the real API. Poll the status endpoint about once a second until the status is `completed` or `failed`.
 
-### Known gaps in the API
+### Authentication
 
-- **Authentication** (`401 UNAUTHENTICATED`) is documented but not enforced yet (US-11).
-- **Unknown URLs and unsupported methods** return FastAPI's default `{"detail": ...}` body instead of the error format above (US-09).
+Optional and off by default. Start the backend with `MLEVAL_AUTH_ENABLED=true` and `MLEVAL_API_KEY=<a secret>`; every request to the evaluation endpoints must then carry the key, either as `X-API-Key: <key>` or as `Authorization: Bearer <key>`, and is otherwise answered with `401 UNAUTHENTICATED`. `/api/health` stays open. If authentication is enabled with no key configured, every protected request is rejected. Every error, including unknown URLs (`404`), unsupported methods (`405`) and unexpected server errors (`500`), uses the `{"error": {"code", "message"}}` format.
 
 ## Deliverable 1
 
