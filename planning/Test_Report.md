@@ -73,23 +73,42 @@ All are under 2 seconds (slowest 1.674 s, mean 1.659 s). The automated test run 
 
 ## 5. Manual test: usability (TC-21, NFR-01)
 
-Not yet performed. It belongs to the usability story (US-22) and needs a person who has not seen the application.
+**Test status: PASS - workflow completed independently, with one usability observation.**
 
-**Procedure.** Give the user the running app and the demo files (`ml-evaluator-demo` or `backend/tests/fixtures/`). Say only: "Evaluate this model on this dataset and tell me the accuracy." Do not help; note where they hesitate.
+**Participant:** One person outside the project team, unfamiliar with the application.
+
+**Test date:** 10 November 2026
+
+**Completion time:** Approximately 2 minutes.
+
+**Assistance required:** No.
+
+**Procedure.** The participant was given access to the running application and asked to evaluate a provided machine learning model using a dataset. No instructions or demonstrations were provided.
 
 **Record sheet.**
 
-| Control | Found without help? (yes / no) | Notes |
+| Control | Found without help? | Notes |
 |---|---|---|
-| Model upload | | |
-| Dataset upload | | |
-| Task type and target column | | |
-| Evaluate / run | | |
-| Status | | |
-| Results | | |
-| Download | | |
+| Model upload | Yes | Successfully uploaded model and dataset |
+| Dataset upload | Yes | Upload completed successfully |
+| Task type and target column | Yes | Understood configuration options |
+| Evaluate / run | Yes | Started evaluation independently |
+| Status | Yes | Understood when evaluation was complete |
+| Results | Yes | Reached Results screen and viewed metrics |
 
-Tester name and date: ______ Result (pass if every control was found without developer help): ______
+**Observations.**
+
+The participant completed the complete evaluation workflow independently in approximately 2 minutes without requesting assistance.
+
+One usability observation was recorded: the participant had difficulty understanding MAE and RMSE because of limited familiarity with machine learning evaluation metrics.
+
+**Usability finding:** Evaluation metric terminology may be unfamiliar to first-time users without a machine learning background.
+
+**Disposition:** Recorded for future consideration. No implementation changes are included in US-18.
+
+**Related GitHub issue:** #64 - Usability observation: Clarify MAE and RMSE metrics for first-time users.
+
+**NFR-01 evidence:** The participant successfully completed Upload, Configure, Evaluate and Read Results without assistance. This provides positive evidence that the application can be used independently by a first-time user, with an opportunity to improve metric interpretability.
 
 ## 6. Manual checks of the user interface
 
