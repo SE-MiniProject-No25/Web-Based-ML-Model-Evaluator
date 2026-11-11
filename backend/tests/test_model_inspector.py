@@ -49,3 +49,10 @@ def test_an_object_without_predict_exits_two(monkeypatch, tmp_path):
 
 def test_a_predict_that_is_not_callable_exits_two(monkeypatch, tmp_path):
     assert inspect(monkeypatch, dumped(NotCallablePredictModel(), tmp_path)) == 2
+
+
+def test_preloading_imports_the_common_estimators_and_skips_missing_ones(monkeypatch):
+    monkeypatch.setattr(model_inspector, "PRELOADED", ("sklearn.linear_model", "no_such_module_here"))
+    model_inspector.preload()
+
+    assert "sklearn.linear_model" in sys.modules

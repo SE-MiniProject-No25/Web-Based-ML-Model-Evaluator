@@ -25,6 +25,9 @@ class Settings:
     # Memory limit for one evaluation: the address space on Linux and macOS (set by the worker), the
     # process memory on Windows (set by a job object, app/security/memory_limit.py). 0 means no limit.
     evaluation_memory_limit_bytes: int = 2 * 1024 * 1024 * 1024
+    # Model inspector processes kept ready, with scikit-learn imported, so a submission is acknowledged
+    # quickly (each model is still checked in its own fresh process). 0 starts one per request.
+    spare_inspectors: int = 2
     # How long temporary artifacts are kept after an evaluation ends.
     retention_seconds: int = 3600
     # How often expired artifacts are swept, besides at start-up and after each submission (0 = no timer).
@@ -60,6 +63,7 @@ def load_settings() -> Settings:
             os.environ.get("MLEVAL_EVALUATION_MEMORY_LIMIT_BYTES", defaults.evaluation_memory_limit_bytes)
         ),
         retention_seconds=int(os.environ.get("MLEVAL_RETENTION_SECONDS", defaults.retention_seconds)),
+        spare_inspectors=int(os.environ.get("MLEVAL_SPARE_INSPECTORS", defaults.spare_inspectors)),
         cleanup_interval_seconds=int(
             os.environ.get("MLEVAL_CLEANUP_INTERVAL_SECONDS", defaults.cleanup_interval_seconds)
         ),

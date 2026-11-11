@@ -3,6 +3,7 @@ child process that inspects a model is handled (timeouts, broken pipes, exit sta
 
 import io
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -98,7 +99,7 @@ def child(monkeypatch):
 
     def install(**options):
         process = FakeProcess(**options)
-        monkeypatch.setattr(service.subprocess, "Popen", lambda *args, **kwargs: process)
+        monkeypatch.setattr(service, "INSPECTORS", service.InspectorPool(start=lambda: process))
         return process
 
     return install
@@ -151,3 +152,86 @@ def test_a_model_larger_than_the_limit_is_rejected_while_streaming(child):
     small_limit = Settings(max_upload_bytes=10)
     error = error_of(lambda: service._validate_model_content(io.BytesIO(b"x" * 100), small_limit))
     assert error.code is ErrorCode.FILE_TOO_LARGE
+
+
+# --- the spare inspector (TEST-04) -----------------------------------------------------------------
+
+
+class Started:
+    """A stand-in process that records whether it is alive."""
+
+    count = 0
+
+    def __init__(self):
+        Started.count += 1
+        self.number = Started.count
+        self.exited = None
+        self.killed = False
+
+    def poll(self):
+        return self.exited
+
+    def kill(self):
+        self.killed = True
+        self.exited = -9
+
+    def wait(self, timeout=None):
+        return self.exited
+
+
+def test_each_model_gets_a_fresh_process_and_a_new_spare_is_started_at_once():
+    pool = service.InspectorPool(start=Started, size=2)
+    pool.warm()
+    first_spares = list(pool._spares)
+
+    taken = []
+    for _ in range(3):
+        taken.append(pool.take())
+        assert len(pool._spares) < 2  # no replacement while the check is under way
+        pool.replenish()  # once it has finished
+        assert len(pool._spares) == 2
+
+    assert taken[:2] == first_spares  # oldest first, so the one that has waited longest
+    assert len({id(p) for p in taken}) == 3  # never reused
+
+
+def test_a_spare_that_died_is_replaced():
+    pool = service.InspectorPool(start=Started, size=1)
+    pool.warm()
+    dead = pool._spares[0]
+    dead.exited = 1
+
+    assert pool.take() is not dead
+
+
+def test_with_no_spares_each_request_starts_its_own_process():
+    pool = service.InspectorPool(start=Started, size=2)
+    pool.resize(0)
+    pool.warm()
+
+    assert pool._spares == []
+    assert pool.take() is not pool.take()
+
+
+def test_warming_twice_keeps_the_same_spares_and_closing_kills_them():
+    pool = service.InspectorPool(start=Started, size=2)
+    pool.warm()
+    spares = list(pool._spares)
+    pool.warm()
+    assert pool._spares == spares
+
+    spares[1].exited = 0  # one already finished on its own
+    pool.close()
+    assert spares[0].killed and not spares[1].killed and pool._spares == []
+
+
+def test_a_real_spare_inspector_checks_a_model():
+    pool = service.InspectorPool()
+    try:
+        pool.warm()
+        process = pool.take()
+        model = (Path(__file__).parent / "fixtures" / "classification" / "model.joblib").read_bytes()
+        process.communicate(model, timeout=60)
+        assert process.returncode == 0
+    finally:
+        pool.close()
