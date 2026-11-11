@@ -19,6 +19,7 @@ Where every project document is. The reports in this folder are generated from t
 | [Deviation Log](Deviation_Log.md) | Every difference between the plan and what was built, mapped to the documents, with a one-page summary for the demo |
 | [Evaluator Checklist Audit](Evaluator_Checklist_Audit.md) | Each checklist line with its evidence and who explains it |
 | [Viva Preparation](Viva_Prep.md) | Each member's work, the Agile process, and short answers on design and testing |
+| [Release notes v1.0](Release_Notes_v1.0.md) | What the frozen version does, its quality figures and its known limitations |
 
 ## Elsewhere in the repository
 
