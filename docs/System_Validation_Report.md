@@ -73,7 +73,7 @@ Back to back: slowest 1.624 s, mean 0.824 s; the limit is 2 s. All are within th
 
 **One second apart** (a person using the interface cannot submit faster): 0.165 | 0.124 | 0.130 | 0.135 | 0.145 | 0.138 | 0.126 | 0.141 | 0.159 | 0.124; slowest 0.165 s.
 
-Almost all of the time used to be the model check before the `202`: a new child process importing scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn already imported, and each model is still checked in its own fresh process. At a normal pace every request gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, which is why the back-to-back figure stays higher (DEF-05).
+Almost all of the time used to be the model check before the `202`: a new child process importing scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn already imported, and each model is still checked in its own fresh process. At a normal pace every request gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, which is why the back-to-back figure stays higher (DEF-05). The automated TC-19 test (`test_ack_time.py`) sends its requests one second apart: back to back, a two-core CI machine took up to 2.3 s on every second request, while waiting for a spare that had only just started.
 
 ## 4. Determinism (TC-20, NFR-03)
 

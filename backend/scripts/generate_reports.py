@@ -552,7 +552,9 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn "
         "already imported, and each model is still checked in its own fresh process. At a normal pace every request "
         "gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, "
-        "which is why the back-to-back figure stays higher (DEF-05).\n"
+        "which is why the back-to-back figure stays higher (DEF-05). The automated TC-19 test (`test_ack_time.py`) "
+        "sends its requests one second apart: back to back, a two-core CI machine took up to 2.3 s on every second "
+        "request, while waiting for a spare that had only just started.\n"
     )
     out.append(
         "## 4. Determinism (TC-20, NFR-03)\n\nThe tests in `tests/test_determinism.py` submit the same model and "
