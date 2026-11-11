@@ -222,6 +222,10 @@ def test_cleanup_expired_active_paths_with_zero_retention_override(tmp_path):
 
     running_file = storage.save(b"running job", ".joblib")
     finished_file = storage.save(b"finished job", ".joblib")
+    # Age both: Windows can stamp a new file a fraction of a second "in the future".
+    then = time.time() - 10
+    for path in (running_file, finished_file):
+        os.utime(path, (then, then))
 
     deleted = storage.cleanup_expired(max_age_seconds=0, active_paths=[running_file])
 
