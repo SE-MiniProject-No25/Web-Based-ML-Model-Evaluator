@@ -119,7 +119,7 @@ Limits and switches (allowed extensions, upload size, evaluation time and memory
 
 ### Supported model format
 
-scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded in a separate child process with a sanitized environment, after validation. The evaluation run is stopped at the configured time limit, and at the memory limit on Linux and macOS (Windows has no equivalent for a plain child process, so only the time limit applies there). This is process isolation, not a container sandbox.
+scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded in a separate child process with a sanitized environment, after validation. The evaluation run is stopped at the configured time limit and at the configured memory limit (on Linux and macOS the worker limits its own address space; on Windows the server puts it in a job object with a memory limit). This is process isolation, not a container sandbox.
 
 ### Contributing
 
