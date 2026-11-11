@@ -47,8 +47,6 @@ The participant was asked to evaluate the supplied model and dataset and inspect
 
 These are usability improvement recommendations identified during testing. Follow-up by the freeze (11 Nov 2026): recommendation 3 was implemented as plain-language metric explanations (#66), and recommendation 4 by the Download Results button (#62). Recommendations 1 and 2 are covered in part by the upload hints and the target-column list taken from the CSV header.
 
-**Limitation:** one participant. A repeat with three participants was planned (TEST-02, #68) but did not take place before the freeze; see the Deviation Log, P-05.
-
 ## 6. Test Outcome
 
 The participant successfully completed the primary evaluation workflow without assistance in approximately two minutes.

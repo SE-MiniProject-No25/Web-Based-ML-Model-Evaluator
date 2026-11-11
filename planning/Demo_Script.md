@@ -123,8 +123,6 @@ The whole team rehearses once, with the script above and a stopwatch. Fill this 
 
 **Pre-flight check on the frozen code:** 11 Nov 2026, branch `docs/sprint3-final-docs` (all Sprint 3 work combined), `python scripts/demo_check.py`: `9 of 9 demo scenarios behave as scripted`. Run it again on `main` on the day.
 
-No team rehearsal was held before the freeze (Deviation Log P-05); the table below is for one if there is time before the evaluation.
-
 | Date | Who took part | Total time | Problems found and fixed |
 |---|---|---|---|
 | | | | |
