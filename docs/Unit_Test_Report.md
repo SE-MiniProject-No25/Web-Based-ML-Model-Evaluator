@@ -72,6 +72,6 @@ These need the POSIX `resource` module, so they only run on Linux and macOS (the
 
 ## 6. Known gaps
 
-- No frontend unit tests (DEF-08).
-- Memory-limit behaviour is only exercised on Linux and macOS.
+- This report covers the backend. The frontend's own tests (Vitest) are summarised at the top of this report, and the browser tests (`e2e/`) in the System Validation Report.
+- The memory limit is exercised on Linux, macOS and Windows, but only Linux and Windows run in CI.
 - Lines that remain uncovered are listed per file in the Code Coverage Report, each with a reason.

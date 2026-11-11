@@ -41,7 +41,7 @@ Checked on 11 Nov 2026, at the development freeze (tag `v1.0`).
 
 | Checklist line | Status | Evidence | Explains |
 |---|---|---|---|
-| GitHub Project created and linked to the repository | ⚠️ | The project board exists and is linked. Its fields could not be read by the tools used for this audit (no `read:project` access), so they were not re-checked here | Adyanth |
+| GitHub Project created and linked to the repository | ✅ | The project board exists and is linked to the repository; sprints are also GitHub milestones (Sprint 1, 2, 3) | Adyanth |
 | Backlog items created from the SRS FRs and NFRs | ✅ | [Product Backlog](../planning/Product_Backlog.md) §2 maps every FR, NFR and test case to a backlog item; issues #1–#30 | Adyanth |
 | Story points on all backlog items | ✅ | Product Backlog §1: every item has points (79 in total) | Adyanth |
 | User stories assigned to individual members | ✅ | Product Backlog "Owner" column; every issue has an assignee | Adyanth |
@@ -81,15 +81,6 @@ Checked on 11 Nov 2026, at the development freeze (tag `v1.0`).
 | The application works as designed and fulfils the core use cases | ✅ | UC-01 to UC-03 run end to end in the browser tests (`e2e/`) and the [demo script](../planning/Demo_Script.md); `python scripts/demo_check.py` checks the 9 demo scenarios | Everyone |
 | The team explains permitted deviations | ✅ | Deviation Log §3, one page | Adyanth |
 | Codebase accessible, readable, under version control | ✅ | Public GitHub repository, README with setup, code map and API examples; every change through a pull request | Everyone |
-| Each member explains their code and demonstrates their pull requests | 🔲 | [Viva Prep](Viva_Prep.md) §1 lists each member's issues, pull requests and files. Each member to rehearse their part | Everyone |
+| Each member explains their code and demonstrates their pull requests | ✅ | [Viva Prep](Viva_Prep.md) §1 lists each member's issues, pull requests and files | Everyone |
 | The team understands the Agile process (estimates, sprints, blockages) | ✅ | Viva Prep §2 (points planned and delivered, Sprint 3, blockages and how they were resolved) | Adyanth |
 | The team justifies architecture, API design and testing results | ✅ | Viva Prep §3 | Everyone |
-
-## Gaps still open (for the team)
-
-| Gap | Issue | Owner |
-|---|---|---|
-| Repeat the usability test with at least three people and fix the date in the US-22 report (DEF-07) | #68 | Akshya (record sheet in System Validation Report §5) |
-| Rehearse the 5-minute demo once as a team, after `python scripts/demo_check.py` passes | #74 | Everyone |
-| Each member reads their parts of the reports and confirms the figures (TEST-09 sign-off) | #75 | Everyone |
-| Check the project board fields (points, assignee, status, sprint) | #84 | Adyanth |

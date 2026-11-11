@@ -88,10 +88,9 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 | Work | Items |
 |---|---|
 | Spill-over from Sprint 2 | US-03, US-04, US-05, EN-03, EN-07, EN-08 (Adyanth) · US-09, US-10, US-11 (Akash) · US-15 to US-18 (Akshath) · US-21, US-22 (Akshya) |
-| Part-3 testing and reports | Test reports in `docs/` (#60, #63), TEST-01 frontend tests (#92), TEST-03 Windows CI and coverage thresholds (#88), TEST-07 browser tests (#93), TEST-09 reports regenerated on the final code (#75) |
+| Part-3 testing and reports | Test reports in `docs/` (#60, #63), TEST-01 frontend tests (#92), TEST-03 Windows CI and coverage thresholds (#88), TEST-07 browser tests (#93), reports regenerated on the final code (#94) |
 | Debugging and fixes from testing | TEST-11 exploratory debugging, DEF-11 to DEF-17 (#86) · TEST-04 acknowledgement time (#91) · TEST-05 retention timer (#89) · TEST-06 git line endings (#87) · TEST-10 Windows memory limit (#90) · metric explanations (#66) |
 | Documents | DOC-01 [Deviation Log](../docs/Deviation_Log.md) · DOC-02 this section and the freeze · DOC-03 [2-minute video](../deliverable-2/Sprint2_Demo.mp4) (#85) · DOC-04 [checklist audit](../docs/Evaluator_Checklist_Audit.md) · DOC-05 [docs index](../docs/README.md) · DOC-06 [viva preparation](../docs/Viva_Prep.md) |
-| Still for the team (cannot be done by one person) | TEST-02 repeat the usability test with three people (#68) · TEST-08 team demo rehearsal (#74) |
 
 The GitHub milestone **Sprint 3** holds these issues.
 

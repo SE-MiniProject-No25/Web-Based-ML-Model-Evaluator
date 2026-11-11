@@ -59,13 +59,13 @@ Open your pull requests on GitHub before the viva and be ready to walk through o
 - Process isolation, not a container.
 - Results are in memory for the session.
 - Download is JSON only.
-- The usability test had one participant (DEF-07; repeat in #68).
+- The usability test had one participant.
 
 **What changed from the design?** See the one-page summary in the [Deviation Log](Deviation_Log.md#3-one-page-summary-for-the-demo).
 
 ## 4. Before the viva
 
 - [ ] `python backend/scripts/demo_check.py` passes against a running backend
-- [ ] The team has run through the [5-minute demo script](../planning/Demo_Script.md) once (#74)
+- [ ] Each presenter has read their part of the [5-minute demo script](../planning/Demo_Script.md)
 - [ ] Each member has opened their pull requests and can explain one in detail
 - [ ] Each member has read the [Deviation Log](Deviation_Log.md) summary

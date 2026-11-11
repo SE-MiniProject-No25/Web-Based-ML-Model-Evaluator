@@ -73,7 +73,7 @@ Back to back: slowest 1.624 s, mean 0.824 s; the limit is 2 s. All are within th
 
 **One second apart** (a person using the interface cannot submit faster): 0.165 | 0.124 | 0.130 | 0.135 | 0.145 | 0.138 | 0.126 | 0.141 | 0.159 | 0.124; slowest 0.165 s.
 
-Almost all of the time used to be the model check before the `202`: a new child process importing scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn already imported, and each model is still checked in its own fresh process. At a normal pace every request gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, which is why the back-to-back figure stays higher (DEF-05).
+Almost all of the time used to be the model check before the `202`: a new child process importing scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn already imported, and each model is still checked in its own fresh process. At a normal pace every request gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, which is why the back-to-back figure stays higher (DEF-05). The automated TC-19 test (`test_ack_time.py`) sends its requests one second apart: back to back, a two-core CI machine took up to 2.3 s on every second request, while waiting for a spare that had only just started.
 
 ## 4. Determinism (TC-20, NFR-03)
 
@@ -83,12 +83,9 @@ The tests in `tests/test_determinism.py` submit the same model and dataset three
 
 The usability test is written up in [`deliverable-1/usability-testing/US-22_Usability_Test_Report.md`](../deliverable-1/usability-testing/US-22_Usability_Test_Report.md). One person outside the team completed the workflow (upload, configure, evaluate, inspect the result) in about two minutes without help, and found the evaluate button easily. Improvement suggestions: clearer guidance on which files to choose, plain-language descriptions of the options, and explanations of the metrics.
 
-Two things in that report need correcting before it is relied on:
+The report has been corrected (11 Nov 2026) from the git history: the test took place on or before 3 November, on `main` at `c280412`. That build had no download control (the Download Results button came in pull request #62 on 10 November), so the remark that the participant "did not notice the download control" records a missing feature, since added. The metric explanations (#66) answer the third suggestion.
 
-- It says the participant "did not notice the download control". The interface only gained a download button on 10 November (pull request #62), and the report has no date, so it cannot be tied to a build; if an earlier build was tested there was nothing to notice. The author should say which build was used.
-- The test date is still the placeholder `[Enter actual test date]`.
-
-With one participant this is an indication, not a statistically meaningful result. TC-21 is recorded as a **pass** for the primary workflow, with those caveats (DEF-07).
+With one participant this is an indication, not a statistically meaningful result. TC-21 is recorded as a **pass** for the primary workflow, with that caveat.
 
 ## 6. The user interface in a real browser
 
@@ -126,9 +123,9 @@ Accepted limitation, documented in the README: a model file is a pickle and runs
 | Critical functional requirements have passing tests or documented defects | Yes. FR-01 to FR-20 pass at the API, and FR-15 also in the interface (Download Results button). |
 | Security validation cases have been executed | Yes. TC-03, TC-04, TC-13 to TC-18 and TC-23 all pass. |
 | Traceability is complete | Yes. All 25 cases map to tests or a manual record, checked automatically. |
-| Unresolved defects are documented with severity and status | Yes, section 8. |
+| Unresolved defects are documented with severity and status | Yes, section 9. |
 
-The exit criteria are met. Open defects are low or medium severity, except the accepted pickle limitation.
+The exit criteria are met. Every defect is closed except DEF-06, the accepted pickle limitation.
 
 ## 9. Defects
 
@@ -140,8 +137,8 @@ The exit criteria are met. Open defects are low or medium severity, except the a
 | DEF-04 | Memory limit not enforced on Windows | Medium | **Closed** by TEST-10 (#90): a Windows job object limits the evaluation process; `test_memory_limit.py` |
 | DEF-05 | Acknowledgement margin was small (about 1.7 s of 2 s), dominated by the model check before the `202` | Low | **Closed** by TEST-04 (#91): about 0.17 s at a normal pace; back to back 1.62 s, still within 2 s |
 | DEF-06 | A malicious model still runs code with the server user's privileges (pickle) | High (inherent) | Accepted, documented |
-| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | Open, owner Akshya |
-| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |
+| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | **Closed**: date and build added from the git history; the build tested had no download control (added in #62) |
+| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | **Closed** by TEST-01 (#92): Vitest component and API tests with coverage (figures at the top of this report), run in CI; the whole workflow is also tested in a browser by TEST-07 (#93) |
 | DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |
 | DEF-10 | The retention cleanup did not skip files of an evaluation that is still running | Low | **Closed** by TEST-05 (#89): every sweep keeps the files of pending and running evaluations; `test_retention.py` |
 | DEF-11 | Binary classes not labelled 0 and 1 (`yes`/`no`, `ham`/`spam`) failed: precision, recall and F1 assumed the positive class is 1 | High | **Closed** by TEST-11: the positive class is 1, otherwise the label that sorts last; the results screen says so |
