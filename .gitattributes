@@ -1,0 +1,14 @@
+# Text files are stored with LF line endings; git converts them for each platform's working tree.
+* text=auto
+
+# Data the tests and the demo compare byte for byte: LF on every platform.
+*.csv text eol=lf
+backend/tests/fixtures/** eol=lf
+
+# Models, images and video are binary: never convert or diff them. (Some test models are deliberately
+# not valid models and look like text, so they must be marked explicitly.)
+*.joblib binary
+*.pkl binary
+*.png binary
+*.jpg binary
+*.mp4 binary
