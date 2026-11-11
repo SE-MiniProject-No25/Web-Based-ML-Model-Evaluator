@@ -10,7 +10,8 @@ here, on plain lists, with the trusted Metrics Service.
 
 Failure outcomes (Architecture section 11):
 
-- the dataset's columns do not match the model      -> ``INCOMPATIBLE_INPUTS``
+- the dataset's columns do not match the model,
+  or the data does not suit the model or the task    -> ``INCOMPATIBLE_INPUTS``
 - the time or memory limit is exceeded               -> ``RESOURCE_LIMIT_EXCEEDED``
 - anything else (crash, bad file, metrics error)     -> ``EVALUATION_FAILED``
 
@@ -68,6 +69,7 @@ def run_evaluation(
         predictions = _predict_in_child_process(evaluation, settings)
         y_true = np.asarray(predictions["y_true"])
         y_pred = np.asarray(predictions["y_pred"])
+        y_true, y_pred = _scorable(evaluation.task_type, evaluation.target_column, y_true, y_pred)
         metrics = metrics_fn(evaluation.task_type, y_true, y_pred)
     except _Failure as failure:
         results.mark_failed(evaluation_id, failure.code, failure.message)
@@ -127,6 +129,56 @@ def _predict_in_child_process(evaluation: Evaluation, settings: Settings) -> dic
     raise _failure_from(outcome)
 
 
+def _numeric(values: np.ndarray) -> bool:
+    return values.dtype.kind in "biuf"
+
+
+def _whole_numbers(values: np.ndarray) -> bool:
+    return values.dtype.kind != "f" or bool(np.all(np.mod(values, 1) == 0))
+
+
+def _scorable(task_type: str, target: str, y_true: np.ndarray, y_pred: np.ndarray) -> tuple:
+    """The labels ready to score; explains, before scoring, when they cannot be scored for this task."""
+    column = _short(target)
+    if task_type == "regression":
+        if not _numeric(y_true):
+            raise _Failure(
+                ErrorCode.INCOMPATIBLE_INPUTS,
+                f"Regression needs a numeric target, but the column '{column}' contains text. "
+                "Choose Classification, or another target column.",
+            )
+        if not _numeric(y_pred):
+            raise _Failure(
+                ErrorCode.INCOMPATIBLE_INPUTS,
+                "The model predicts labels, not numbers, so it looks like a classification model. "
+                "Choose Classification as the task type.",
+            )
+        return y_true, y_pred
+    if _numeric(y_true) != _numeric(y_pred):
+        # A model trained on the text labels "0" and "1" against a CSV, where they read as numbers.
+        as_text = y_true.astype(str), y_pred.astype(str)
+        if set(as_text[1]) <= set(as_text[0]):
+            return as_text
+        raise _Failure(
+            ErrorCode.INCOMPATIBLE_INPUTS,
+            f"The model predicts {'numbers' if _numeric(y_pred) else 'text'}, but the column '{column}' "
+            f"contains {'numbers' if _numeric(y_true) else 'text'}. Check the target column.",
+        )
+    if not _whole_numbers(y_pred):
+        raise _Failure(
+            ErrorCode.INCOMPATIBLE_INPUTS,
+            "The model predicts continuous values, so it looks like a regression model. "
+            "Choose Regression as the task type.",
+        )
+    if not _whole_numbers(y_true):
+        raise _Failure(
+            ErrorCode.INCOMPATIBLE_INPUTS,
+            f"The column '{column}' contains continuous values, not classes. "
+            "Choose Regression as the task type, or another target column.",
+        )
+    return y_true, y_pred
+
+
 def _failure_from(outcome: dict) -> _Failure:
     """Turn the worker's report into a safe failure; unknown codes become the generic failure."""
     code = outcome.get("code")
@@ -141,6 +193,17 @@ def _failure_from(outcome: dict) -> _Failure:
 
 def _incompatible_message(outcome: dict) -> str:
     """Describe the mismatch using column names only, shortened (they come from the user's own files)."""
+    reason = outcome.get("reason")
+    if reason == "no_rows":
+        return "The dataset has a header but no rows to evaluate."
+    if reason == "empty_target":
+        return (
+            f"The target column has {outcome.get('count')} empty value(s). Every row needs a value in the "
+            "target column to be scored; fill them in or remove those rows."
+        )
+    if reason in ("empty_values", "text_values"):
+        problem = "empty cells" if reason == "empty_values" else "text where the model expects numbers"
+        return f"The model could not use the data: {problem} in {_names(outcome.get('columns'))}."
     if "expected_count" in outcome:
         return (
             f"The dataset has {outcome.get('given_count')} feature column(s) but the model expects "
@@ -148,8 +211,17 @@ def _incompatible_message(outcome: dict) -> str:
         )
     parts = ["The dataset's columns do not match the features the model expects."]
     for key, label in (("missing", "Missing from the dataset"), ("extra", "Not used by the model")):
-        names = [str(n)[:_MAX_NAME_LENGTH] for n in (outcome.get(key) or [])[:_MAX_NAMES]]
-        if names:
-            more = "…" if len(outcome.get(key) or []) > _MAX_NAMES else ""
-            parts.append(f"{label}: {', '.join(names)}{more}.")
+        if outcome.get(key):
+            parts.append(f"{label}: {_names(outcome.get(key))}.")
     return " ".join(parts)
+
+
+def _short(name) -> str:
+    return str(name)[:_MAX_NAME_LENGTH]
+
+
+def _names(names) -> str:
+    """A shortened list of column names (they come from the user's own files)."""
+    names = list(names or [])
+    more = "…" if len(names) > _MAX_NAMES else ""
+    return ", ".join(_short(n) for n in names[:_MAX_NAMES]) + more

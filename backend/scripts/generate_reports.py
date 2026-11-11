@@ -10,6 +10,7 @@ docs/Branch_Coverage_Report.md and the browsable docs/coverage_html/. Every numb
 import argparse
 import datetime
 import importlib.metadata
+import json
 import os
 import platform
 import re
@@ -224,11 +225,57 @@ def header(title: str, env: dict, extra: str = "") -> str:
     )
 
 
-SCOPE_NOTE = (
-    "**Scope.** These reports cover the backend (`backend/app`). The frontend has no automated tests, so it has "
-    "no unit-test or coverage figures; it was checked by hand against a running backend (System Validation "
-    "Report, section 6). Adding frontend tests is listed as a defect (DEF-08).\n"
-)
+def frontend_results() -> dict | None:
+    """Run the frontend tests with coverage (TEST-01) and return their figures, or None without npm."""
+    npm = shutil.which("npm")
+    frontend = REPO / "frontend"
+    if npm is None or not (frontend / "node_modules").exists():
+        return None
+    subprocess.run(
+        [npm, "run", "coverage", "--", "--reporter=json", "--outputFile=coverage/results.json"],
+        cwd=frontend, capture_output=True, check=False,
+    )  # fmt: skip
+    try:
+        results = json.loads((frontend / "coverage" / "results.json").read_text(encoding="utf-8"))
+        total = json.loads((frontend / "coverage" / "coverage-summary.json").read_text(encoding="utf-8"))["total"]
+    except (OSError, ValueError, KeyError):
+        return None
+    return {
+        "tests": results["numTotalTests"],
+        "passed": results["numPassedTests"],
+        "failed": results["numFailedTests"],
+        "lines": total["lines"]["pct"],
+        "branches": total["branches"]["pct"],
+        "files": {
+            Path(name).name: (data["lines"]["pct"], data["branches"]["pct"])
+            for name, data in json.loads(
+                (frontend / "coverage" / "coverage-summary.json").read_text(encoding="utf-8")
+            ).items()
+            if name != "total"
+        },
+    }
+
+
+FRONTEND: dict | None = None
+
+
+def scope_note() -> str:
+    if FRONTEND is None:
+        return (
+            "**Scope.** These reports cover the backend (`backend/app`). The frontend tests (`cd frontend`, "
+            "`npm run coverage`) were not run with them; install the frontend first to include its figures.\n"
+        )
+    rows = "\n".join(
+        f"| `frontend/src/{name}` | {line:.1f}% | {branch:.1f}% |"
+        for name, (line, branch) in sorted(FRONTEND["files"].items())
+    )
+    return (
+        "**Scope.** The figures below are for the backend (`backend/app`, pytest and coverage.py). The frontend "
+        f"(`frontend/src`) has its own tests (Vitest and React Testing Library, `npm run coverage`): "
+        f"**{FRONTEND['passed']} of {FRONTEND['tests']} passed**, **{FRONTEND['lines']:.1f}% of lines** and "
+        f"**{FRONTEND['branches']:.1f}% of branches** covered:\n\n"
+        f"| Frontend file | Lines | Branches |\n|---|---|---|\n{rows}\n"
+    )
 
 
 # Why a line or branch is not exercised, reviewed by hand. Keyed by file; each entry is
@@ -271,7 +318,7 @@ def unit_report(env, all_cases, unit_cov) -> str:
     unit = [c for c in all_cases if level_of(c) == "Unit"]
     system = [c for c in all_cases if level_of(c) == "System"]
     u = counts(unit)
-    out = [header("Unit Test Report", env), SCOPE_NOTE]
+    out = [header("Unit Test Report", env), scope_note()]
     out.append(
         "## 1. What counts as a unit test\n\nA **unit test** checks one component on its own: pure functions, a "
         "component with in-memory fakes, or a small application built inside the test. A **system test** goes "
@@ -329,7 +376,7 @@ def unit_report(env, all_cases, unit_cov) -> str:
 
 def coverage_report(env, cov_all, cov_unit) -> str:
     t, tu = cov_all["total"], cov_unit["total"]
-    out = [header("Code Coverage Report", env), SCOPE_NOTE]
+    out = [header("Code Coverage Report", env), scope_note()]
     out.append(
         "## 1. Summary\n\nLine coverage is the share of executable statements that ran at least once.\n\n"
         "| Run | Statements | Covered | Line coverage |\n|---|---|---|---|\n"
@@ -376,7 +423,7 @@ def coverage_report(env, cov_all, cov_unit) -> str:
 
 def branch_report(env, cov_all, cov_unit) -> str:
     t, tu = cov_all["total"], cov_unit["total"]
-    out = [header("Branch Coverage Report", env), SCOPE_NOTE]
+    out = [header("Branch Coverage Report", env), scope_note()]
     out.append(
         "## 1. Summary\n\nA branch is one outcome of a decision (the `if` taken, or not taken; a loop entered, or "
         "skipped). Branch coverage is the share of those outcomes that ran at least once.\n\n"
@@ -426,7 +473,7 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
     failed = sorted(c for c, (r, _) in results.items() if r == "FAIL")
     k = counts(all_cases)
     slowest, mean = max(ack_times), sum(ack_times) / len(ack_times)
-    out = [header("System Validation Report", env), SCOPE_NOTE]
+    out = [header("System Validation Report", env), scope_note()]
     out.append(
         "Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases, TC-01 to TC-25) against the "
         "complete application. It replaces `planning/Test_Report.md` (3 November), which was written before "
@@ -557,6 +604,23 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |\n"
         "| DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |\n"
         "| DEF-10 | The retention cleanup does not skip files of an evaluation that is still running. With the defaults (retention 3600 s, evaluation limit 60 s) this cannot happen, but a retention shorter than a run could delete files mid-evaluation | Low | Open, owner Akash |\n"
+        "| DEF-11 | Binary classes not labelled 0 and 1 (`yes`/`no`, `ham`/`spam`) failed: precision, recall and F1 assumed the positive class is 1 | High | **Closed** by TEST-11: the positive class is 1, otherwise the label that sorts last; the results screen says so |\n"
+        "| DEF-12 | A CSV with spaces after the commas (`a, b, label`) was rejected with `INVALID_TARGET_COLUMN`, because the interface sends the trimmed column name | Medium | **Closed** by TEST-11: names are compared without surrounding spaces |\n"
+        "| DEF-13 | An Excel byte-order mark made the first column `\\ufefflabel`, so a target in the first column was rejected | Medium | **Closed** by TEST-11: the file is read as `utf-8-sig` |\n"
+        "| DEF-14 | A semicolon- or tab-separated file was rejected with a misleading `INVALID_TARGET_COLUMN` (the interface detected the separator, the server did not) | Low | **Closed** by TEST-11: both reject it, naming the separator |\n"
+        "| DEF-15 | Empty cells in the target or a feature, or text in a numeric column, ended as the generic \"could not be completed\" | Medium | **Closed** by TEST-11: `INCOMPATIBLE_INPUTS` naming the count or the columns (only when the model fails; a pipeline that fills empty cells still works) |\n"
+        "| DEF-16 | A text target with Regression, or a regression model with Classification, ended as the generic failure | Medium | **Closed** by TEST-11: `INCOMPATIBLE_INPUTS` saying which task type to choose |\n"
+        "| DEF-17 | The regression chart drew MSE and R² on one scale, so R² was invisible next to MSE | Low | **Closed** by TEST-11: scores are drawn from 0 to 1, MAE and RMSE share a scale, MSE is in the table only |\n"
+    )
+    out.append(
+        "### Exploratory testing (TEST-11)\n\n"
+        "Unusual inputs were tried through the API and the interface: labels other than 0 and 1 and text labels, "
+        "three text classes, empty cells in the target and in features, text in a numeric column, a header with spaces, "
+        "a byte-order mark, semicolon and tab separators, a one-row dataset, a header-only dataset, 500 feature columns, "
+        "a text target with Regression, a regression model with Classification, the same submission repeated, two "
+        "submissions at the same moment on a real server, and unusual filenames (spaces, non-Latin letters, `..\\\\`, "
+        "upper-case extensions). DEF-11 to DEF-17 were found and fixed; everything else already behaved. Every input "
+        "is kept as a test in `tests/test_edge_case_inputs.py`.\n"
     )
     out.append(
         "## 10. Changes to test cases\n\nThe detailed test cases in [Test Plan section 8](../deliverable-1/02_Test_Plan.md) were "
@@ -586,6 +650,8 @@ def main() -> int:
         (work / "ack.txt").write_text(",".join(str(t) for t in measure_ack_times()))
     ack_times = [float(x) for x in (work / "ack.txt").read_text().split(",")]
 
+    global FRONTEND
+    FRONTEND = frontend_results()
     env = environment()
     all_cases = junit_cases(work / "all.xml")
     cov_all, cov_unit = read_coverage(work / "cov_all.xml"), read_coverage(work / "cov_unit.xml")

@@ -33,6 +33,19 @@ def _limit_memory(limit_bytes: int) -> None:
         resource.setrlimit(resource.RLIMIT_AS, (limit_bytes, limit_bytes))
 
 
+def _data_problem(features) -> dict | None:
+    """Columns with empty cells, or with text, which explain why a model could not predict."""
+    empty = [str(c) for c in features.columns if features[c].isna().any()]
+    if empty:
+        return {"reason": "empty_values", "columns": empty}
+    from pandas.api.types import is_numeric_dtype  # true for booleans too
+
+    text = [str(c) for c in features.columns if not is_numeric_dtype(features[c])]
+    if text:
+        return {"reason": "text_values", "columns": text}
+    return None
+
+
 def main() -> None:
     model_path, dataset_path, target, result_path, memory_limit = sys.argv[1:6]
     try:
@@ -44,10 +57,28 @@ def main() -> None:
         _limit_memory(int(memory_limit))
 
         model = joblib.load(model_path)
-        dataset = pd.read_csv(dataset_path)
+        # utf-8-sig drops the byte-order mark Excel writes; skipinitialspace allows "a, b, c" headers.
+        dataset = pd.read_csv(dataset_path, encoding="utf-8-sig", skipinitialspace=True)
+        dataset.columns = [str(c).strip() for c in dataset.columns]
+        target = target.strip()
+
+        if dataset.empty:
+            _write(result_path, {"ok": False, "code": "INCOMPATIBLE_INPUTS", "reason": "no_rows"})
+            return
+
+        empty_targets = int(dataset[target].isna().sum())
+        if empty_targets:
+            report = {
+                "ok": False,
+                "code": "INCOMPATIBLE_INPUTS",
+                "reason": "empty_target",
+                "count": empty_targets,
+            }
+            _write(result_path, report)
+            return
+
         y_true = dataset[target].to_numpy()
         features = dataset.drop(columns=[target])
-        features.columns = [str(c) for c in features.columns]
 
         expected = getattr(model, "feature_names_in_", None)
         if expected is not None:
@@ -74,7 +105,17 @@ def main() -> None:
                 )
                 return
 
-        y_pred = np.asarray(model.predict(features))
+        try:
+            y_pred = np.asarray(model.predict(features))
+        except Exception:
+            # Many models cannot handle empty cells or text in a numeric column. Name the columns
+            # (a pipeline with an imputer or encoder handles them, so they are only checked on failure).
+            hint = _data_problem(features)
+            if hint is None:
+                raise
+            traceback.print_exc()
+            _write(result_path, {"ok": False, "code": "INCOMPATIBLE_INPUTS", **hint})
+            return
         _write(result_path, {"ok": True, "y_true": y_true.tolist(), "y_pred": y_pred.tolist()})
     except MemoryError:
         traceback.print_exc()
