@@ -60,7 +60,7 @@ def _validate_dataset_content(file: BinaryIO) -> list[str]:
             raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is empty.")
 
         try:
-            text = content.decode("utf-8")
+            text = content.decode("utf-8-sig")  # tolerates the byte-order mark Excel writes
         except UnicodeDecodeError:
             raise AppError(
                 ErrorCode.MALFORMED_DATASET,
@@ -78,6 +78,15 @@ def _validate_dataset_content(file: BinaryIO) -> list[str]:
 
         if not header:
             raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is missing a header row.")
+        if len(header) == 1:
+            separators = ((";", "semicolons"), ("\t", "tabs"))
+            separator = next((name for sep, name in separators if sep in header[0]), None)
+            if separator:
+                raise AppError(
+                    ErrorCode.MALFORMED_DATASET,
+                    f"The dataset must be comma-separated, but this file uses {separator}. "
+                    "Save it again as a comma-separated CSV.",
+                )
 
         header_len = len(header)
         try:
@@ -215,7 +224,8 @@ def validate_submission(
     if dataset_file is not None:
         _enforce_file_size(dataset_file, settings.max_upload_bytes, "dataset")
         header = _validate_dataset_content(dataset_file)
-        if target_column not in header:
+        # Compared without surrounding spaces, so "a, b, c" headers work (the evaluation does the same).
+        if target_column.strip() not in [name.strip() for name in header]:
             raise AppError(
                 ErrorCode.INVALID_TARGET_COLUMN,
                 f"The selected target column '{target_column}' does not exist in the dataset.",

@@ -2,7 +2,9 @@
 
 Classification behaviour:
 - Accuracy is always reported.
-- Binary classification uses the positive class for precision, recall, and F1.
+- Binary classification uses the positive class for precision, recall, and F1:
+  1 for 0/1 labels, otherwise the label that sorts last ("yes" over "no",
+  "spam" over "ham"). Labels do not have to be 0 and 1.
 - Multiclass classification uses macro averaging so every class contributes
   equally regardless of class frequency.
 - Undefined precision, recall, or F1 values are reported as 0.0.
@@ -48,34 +50,31 @@ def _compute_classification(
     """Compute standard binary or multiclass classification metrics."""
     labels = set(y_true) | set(y_pred)
     average = "binary" if len(labels) <= 2 else "macro"
+    options = {"average": average, "zero_division": 0}
+    if average == "binary":
+        options["pos_label"] = positive_label(labels)
 
     return {
         "accuracy": float(accuracy_score(y_true, y_pred)),
-        "precision": float(
-            precision_score(
-                y_true,
-                y_pred,
-                average=average,
-                zero_division=0,
-            )
-        ),
-        "recall": float(
-            recall_score(
-                y_true,
-                y_pred,
-                average=average,
-                zero_division=0,
-            )
-        ),
-        "f1": float(
-            f1_score(
-                y_true,
-                y_pred,
-                average=average,
-                zero_division=0,
-            )
-        ),
+        "precision": float(precision_score(y_true, y_pred, **options)),
+        "recall": float(recall_score(y_true, y_pred, **options)),
+        "f1": float(f1_score(y_true, y_pred, **options)),
     }
+
+
+def positive_label(labels):
+    """The class that precision, recall and F1 describe in a binary problem.
+
+    For 0/1 labels it is 1, even when only one of them occurs. Otherwise it is the label that sorts
+    last ("yes" over "no", "spam" over "ham", 2 over 1). Labels of different types, which the runner
+    rejects before scoring, are compared as text.
+    """
+    if labels <= {0, 1}:
+        return max(labels | {1})
+    try:
+        return max(labels)
+    except TypeError:
+        return max(labels, key=str)
 
 
 def _compute_regression(

@@ -558,6 +558,23 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |\n"
         "| DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |\n"
         "| DEF-10 | The retention cleanup does not skip files of an evaluation that is still running. With the defaults (retention 3600 s, evaluation limit 60 s) this cannot happen, but a retention shorter than a run could delete files mid-evaluation | Low | Open, owner Akash |\n"
+        "| DEF-11 | Binary classes not labelled 0 and 1 (`yes`/`no`, `ham`/`spam`) failed: precision, recall and F1 assumed the positive class is 1 | High | **Closed** by TEST-11: the positive class is 1, otherwise the label that sorts last; the results screen says so |\n"
+        "| DEF-12 | A CSV with spaces after the commas (`a, b, label`) was rejected with `INVALID_TARGET_COLUMN`, because the interface sends the trimmed column name | Medium | **Closed** by TEST-11: names are compared without surrounding spaces |\n"
+        "| DEF-13 | An Excel byte-order mark made the first column `\\ufefflabel`, so a target in the first column was rejected | Medium | **Closed** by TEST-11: the file is read as `utf-8-sig` |\n"
+        "| DEF-14 | A semicolon- or tab-separated file was rejected with a misleading `INVALID_TARGET_COLUMN` (the interface detected the separator, the server did not) | Low | **Closed** by TEST-11: both reject it, naming the separator |\n"
+        "| DEF-15 | Empty cells in the target or a feature, or text in a numeric column, ended as the generic \"could not be completed\" | Medium | **Closed** by TEST-11: `INCOMPATIBLE_INPUTS` naming the count or the columns (only when the model fails; a pipeline that fills empty cells still works) |\n"
+        "| DEF-16 | A text target with Regression, or a regression model with Classification, ended as the generic failure | Medium | **Closed** by TEST-11: `INCOMPATIBLE_INPUTS` saying which task type to choose |\n"
+        "| DEF-17 | The regression chart drew MSE and R² on one scale, so R² was invisible next to MSE | Low | **Closed** by TEST-11: scores are drawn from 0 to 1, MAE and RMSE share a scale, MSE is in the table only |\n"
+    )
+    out.append(
+        "### Exploratory testing (TEST-11)\n\n"
+        "Unusual inputs were tried through the API and the interface: labels other than 0 and 1 and text labels, "
+        "three text classes, empty cells in the target and in features, text in a numeric column, a header with spaces, "
+        "a byte-order mark, semicolon and tab separators, a one-row dataset, a header-only dataset, 500 feature columns, "
+        "a text target with Regression, a regression model with Classification, the same submission repeated, two "
+        "submissions at the same moment on a real server, and unusual filenames (spaces, non-Latin letters, `..\\\\`, "
+        "upper-case extensions). DEF-11 to DEF-17 were found and fixed; everything else already behaved. Every input "
+        "is kept as a test in `tests/test_edge_case_inputs.py`.\n"
     )
     out.append(
         "## 10. Changes to test cases\n\nThe detailed test cases in [Test Plan section 8](../deliverable-1/02_Test_Plan.md) were "
