@@ -6,6 +6,7 @@ from app.api.auth import AuthenticationMiddleware
 from app.api.docs import API_DESCRIPTION, TAGS
 from app.api.error_handlers import register_error_handlers
 from app.api.evaluations import router as evaluations_router
+from app.api.retention import retention_lifespan
 from app.config import Settings, load_settings
 from app.results import ResultService
 from app.storage import TemporaryStorage
@@ -19,6 +20,7 @@ def create_app(settings: Settings | None = None, results: ResultService | None =
         version="1.0.0",
         description=API_DESCRIPTION,
         openapi_tags=TAGS,
+        lifespan=retention_lifespan,
     )
     app.state.settings = settings
     app.state.storage = TemporaryStorage(settings.storage_dir, retention_seconds=settings.retention_seconds)
