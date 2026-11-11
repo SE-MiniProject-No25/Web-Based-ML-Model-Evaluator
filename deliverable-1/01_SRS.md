@@ -1,6 +1,8 @@
 # Software Requirements Specification (SRS)
 ## Web-Based ML Model Evaluator
 
+> **Deviations (as built).** Every requirement here is met; where the build made a choice the SRS left open or added to it, the deviation is recorded in the [Deviation Log](../docs/Deviation_Log.md): authentication as an optional API key (NFR-07, SEC-06: [D-05](../docs/Deviation_Log.md#1-design-deviations)), results kept in memory for the session (FR-18: D-08), JSON download (FR-15: D-09), binary class labels other than 0/1 (FR-10: D-10), the accepted CSV format (FR-04: D-12), and plain-language metric explanations (NFR-01: D-15).
+
 
 ## 1. Introduction
 

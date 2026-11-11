@@ -12,7 +12,7 @@ The project focuses on applying Software Engineering principles such as requirem
 
 ## Project Organization
 
-This repository will contain the deliverables and implementation developed throughout the project.
+This repository contains the deliverables and the implementation developed throughout the project.
 
 ```text
 Web-Based-ML-Model-Evaluator/
@@ -22,6 +22,9 @@ Web-Based-ML-Model-Evaluator/
 ├── backend/            # FastAPI service, one package per architecture component
 ├── frontend/           # React + Vite web UI
 ├── .github/            # CI workflow and pull request template
+│
+├── docs/               # test reports, deviation log, checklist audit, viva prep (see docs/README.md)
+├── e2e/                # browser tests of the whole workflow
 │
 ├── planning/
 │   ├── Product_Backlog.md
@@ -40,7 +43,7 @@ Web-Based-ML-Model-Evaluator/
         └── sequence_validation.puml / sequence_validation.png
 ```
 
-Additional deliverables and implementation files will be added to the repository as the project progresses.
+`deliverable-2/` holds the 2-minute Sprint 2 video, its recording script and the demo inputs.
 
 The UML diagrams are written in [PlantUML](https://plantuml.com). After editing a `.puml` source, regenerate its image, for example with the PlantUML extension for VS Code or with:
 
@@ -50,7 +53,9 @@ java -jar plantuml.jar -tpng deliverable-1/uml/component.puml
 
 ## Project Planning
 
-Implementation is planned as two one-week sprints (7 – 20 Oct 2026):
+> **Development is frozen** as of 11 Nov 2026 at tag [`v1.0`](https://github.com/SE-MiniProject-No25/Web-Based-ML-Model-Evaluator/releases/tag/v1.0). After the freeze only bug fixes are merged, each through a reviewed pull request. All documents are indexed in [`docs/README.md`](docs/README.md); differences from the original design are in the [Deviation Log](docs/Deviation_Log.md).
+
+Implementation was planned as two one-week sprints (7 – 20 Oct 2026); they overran, and a third sprint (3 – 11 Nov) finished the spill-over and the Part-3 testing ([Sprint Plan §2a](planning/Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)):
 
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.

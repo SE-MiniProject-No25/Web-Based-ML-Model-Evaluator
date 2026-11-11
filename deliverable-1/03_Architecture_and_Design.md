@@ -1,6 +1,8 @@
 # Software Architecture & Design Specification
 ## Web-Based ML Model Evaluator
 
+> **Deviations (as built).** The components, the API (section 10) and the error table (section 11) are implemented as specified. The [Deviation Log](../docs/Deviation_Log.md#1-design-deviations) records where the build differs or adds detail: the code layout per component (D-01), the model checked and run in child processes (D-02, D-03, D-07, D-11), three extra error codes outside the workflow (D-04), the optional API key (D-05), retention on a timer (D-06), the in-memory result store (D-08) and the data rules added after testing (D-10, D-12, D-13).
+
 
 # Part I — Architecture Specification
 
