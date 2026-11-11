@@ -1,3 +1,5 @@
+import process from 'node:process'
+
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -5,5 +7,6 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   // In development, /api requests go to the FastAPI backend (see the README for how to start it).
-  server: { proxy: { '/api': 'http://localhost:8000' } },
+  // VITE_API_TARGET points them elsewhere, e.g. the end-to-end tests' own backend.
+  server: { proxy: { '/api': process.env.VITE_API_TARGET || 'http://localhost:8000' } },
 })
