@@ -110,6 +110,14 @@ ruff check .
 pytest
 ```
 
+**Browser tests** (the whole workflow in a real browser; they start their own backend and frontend):
+
+```bash
+pip install -r e2e/requirements.txt
+python -m playwright install chromium
+python -m pytest e2e          # E2E_BROWSER_CHANNEL=msedge uses the installed Edge instead
+```
+
 Limits and switches (allowed extensions, upload size, evaluation time and memory limits, retention period, authentication on/off) live in [`backend/app/config.py`](backend/app/config.py) and can be overridden with `MLEVAL_*` environment variables.
 
 ### Supported model format
