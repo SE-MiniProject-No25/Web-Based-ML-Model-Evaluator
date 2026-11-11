@@ -62,7 +62,7 @@ Checked on 11 Nov 2026, at the development freeze (tag `v1.0`).
 | Checklist line | Status | Evidence | Explains |
 |---|---|---|---|
 | Sprint 2 completed and development officially frozen | ✅ | All Sprint 2 stories closed (in Sprint 3, see Sprint Plan §2a); freeze recorded in Sprint Plan §2b and the README, tag `v1.0` | Adyanth |
-| Deviations from SAD/SRS documented for the demo | ✅ | [Deviation Log](Deviation_Log.md) (design D-01–D-16, process P-01–P-06) with a one-page summary (§3); each affected document links to it | Adyanth |
+| Deviations from SAD/SRS documented for the demo | ✅ | [Deviation Log](Deviation_Log.md) (design D-01–D-16, process P-01–P-08) with a one-page summary (§3); each affected document links to it | Adyanth |
 | All remaining documentation finalised | ✅ | [docs index](README.md); documents updated to the final code (DOC-05) | Adyanth |
 | 2-minute video in the repository | ✅ | [`deliverable-2/Sprint2_Demo.mp4`](../deliverable-2/Sprint2_Demo.mp4) (2:00, screen recording) | Adyanth |
 
@@ -81,15 +81,17 @@ Checked on 11 Nov 2026, at the development freeze (tag `v1.0`).
 | The application works as designed and fulfils the core use cases | ✅ | UC-01 to UC-03 run end to end in the browser tests (`e2e/`) and the [demo script](../planning/Demo_Script.md); `python scripts/demo_check.py` checks the 9 demo scenarios | Everyone |
 | The team explains permitted deviations | ✅ | Deviation Log §3, one page | Adyanth |
 | Codebase accessible, readable, under version control | ✅ | Public GitHub repository, README with setup, code map and API examples; every change through a pull request | Everyone |
-| Each member explains their code and demonstrates their pull requests | 🔲 | [Viva Prep](Viva_Prep.md) §1 lists each member's issues, pull requests and files. Each member to rehearse their part | Everyone |
+| Each member explains their code and demonstrates their pull requests | ⚠️ | [Viva Prep](Viva_Prep.md) §1 lists each member's issues, pull requests and files. No team rehearsal was held before the freeze ([P-05](Deviation_Log.md#2-process-deviations)); each member prepares from Viva Prep | Everyone |
 | The team understands the Agile process (estimates, sprints, blockages) | ✅ | Viva Prep §2 (points planned and delivered, Sprint 3, blockages and how they were resolved) | Adyanth |
 | The team justifies architecture, API design and testing results | ✅ | Viva Prep §3 | Everyone |
 
-## Gaps still open (for the team)
+## Gaps at the freeze, and how each was closed
 
-| Gap | Issue | Owner |
+Every Sprint 3 issue is closed. Four could not be done in full before the freeze; what was done instead is recorded as a process deviation.
+
+| Gap | Issue | Outcome |
 |---|---|---|
-| Repeat the usability test with at least three people and fix the date in the US-22 report (DEF-07) | #68 | Akshya (record sheet in System Validation Report §5) |
-| Rehearse the 5-minute demo once as a team, after `python scripts/demo_check.py` passes | #74 | Everyone |
-| Each member reads their parts of the reports and confirms the figures (TEST-09 sign-off) | #75 | Everyone |
-| Check the project board fields (points, assignee, status, sprint) | #84 | Adyanth |
+| Repeat the usability test with at least three people and fix the date in the US-22 report (DEF-07) | #68 | Report corrected from the git history (date, build tested, download remark), DEF-07 closed. Not repeated: one participant ([P-05](Deviation_Log.md#2-process-deviations)) |
+| Rehearse the 5-minute demo once as a team, after `python scripts/demo_check.py` passes | #74 | `demo_check.py` passes, 9 of 9 on the frozen code. No team rehearsal (P-05) |
+| Each member reads their parts of the reports and confirms the figures (TEST-09 sign-off) | #75 | Reports regenerated on the final code, every marker reviewed, defect table up to date. Checked by the team lead only (P-07) |
+| Branch protection, reviews, board fields | #84 | Branch protection on `main` (pull request and one approving review). Unreviewed merges recorded (P-04). Board fields not re-checked; milestones hold the sprints (P-08) |

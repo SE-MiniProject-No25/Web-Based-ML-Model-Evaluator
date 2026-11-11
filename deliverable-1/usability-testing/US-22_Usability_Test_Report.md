@@ -9,7 +9,8 @@
 | Requirement | NFR-01 |
 | Test Type | Usability Testing |
 | Participant | One person outside the project team |
-| Test Date | [Enter actual test date] |
+| Test Date | On or before 3 Nov 2026. The exact day was not written down; this report was committed on 3 Nov 2026 (commit `8d265c7`) |
+| Build Tested | `main` at `c280412` (3 Nov 2026, the frontend wizard from #47), the newest build on that day. It had no download control: the Download Results button came later, in #62 (10 Nov 2026) |
 | Approximate Duration | 2 minutes |
 | Assistance Provided | None |
 
@@ -33,7 +34,7 @@ The participant was asked to evaluate the supplied model and dataset and inspect
 | Configuration | Configuration options were easier to understand for users familiar with machine learning. |
 | Evaluation | The evaluation button was easy to identify and use. |
 | Results | Understanding the displayed metrics required some machine-learning knowledge. |
-| Download | Participant did not notice the download control. |
+| Download | Participant did not notice the download control. *Correction (11 Nov 2026):* the build tested had no download control in the interface, so this observation records a missing feature, not a hidden one. It was added in #62. |
 | Assistance | No assistance was requested. |
 | Feedback | Limited feedback, primarily concerning the UI. |
 
@@ -44,7 +45,9 @@ The participant was asked to evaluate the supplied model and dataset and inspect
 3. Add plain-language explanations for evaluation metrics.
 4. Improve the visibility of the download control.
 
-These are usability improvement recommendations identified during testing. They are documented for consideration and are not recorded as implemented changes.
+These are usability improvement recommendations identified during testing. Follow-up by the freeze (11 Nov 2026): recommendation 3 was implemented as plain-language metric explanations (#66), and recommendation 4 by the Download Results button (#62). Recommendations 1 and 2 are covered in part by the upload hints and the target-column list taken from the CSV header.
+
+**Limitation:** one participant. A repeat with three participants was planned (TEST-02, #68) but did not take place before the freeze; see the Deviation Log, P-05.
 
 ## 6. Test Outcome
 

@@ -379,8 +379,9 @@ def unit_report(env, all_cases, unit_cov) -> str:
     )
     out.append(
         "## 6. Known gaps\n\n"
-        "- No frontend unit tests (DEF-08).\n"
-        "- Memory-limit behaviour is only exercised on Linux and macOS.\n"
+        "- This report covers the backend. The frontend's own tests (Vitest) are summarised at the top of this "
+        "report, and the browser tests (`e2e/`) in the System Validation Report.\n"
+        "- The memory limit is exercised on Linux, macOS and Windows, but only Linux and Windows run in CI.\n"
         "- Lines that remain uncovered are listed per file in the Code Coverage Report, each with a reason.\n"
     )
     return "\n".join(out)
@@ -563,13 +564,13 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "One person outside the team completed the workflow (upload, configure, evaluate, inspect the result) in about "
         "two minutes without help, and found the evaluate button easily. Improvement suggestions: clearer guidance "
         "on which files to choose, plain-language descriptions of the options, and explanations of the metrics.\n\n"
-        "Two things in that report need correcting before it is relied on:\n\n"
-        "- It says the participant \"did not notice the download control\". The interface only gained a download "
-        "button on 10 November (pull request #62), and the report has no date, so it cannot be tied to a build; if "
-        "an earlier build was tested there was nothing to notice. The author should say which build was used.\n"
-        "- The test date is still the placeholder `[Enter actual test date]`.\n\n"
-        "With one participant this is an indication, not a statistically meaningful result. TC-21 is recorded as a "
-        "**pass** for the primary workflow, with those caveats (DEF-07).\n"
+        "The report has been corrected (11 Nov 2026) from the git history: the test took place on or before 3 November, "
+        "on `main` at `c280412`. That build had no download control (the Download Results button came in pull request "
+        "#62 on 10 November), so the remark that the participant \"did not notice the download control\" records a "
+        "missing feature, since added. The metric explanations (#66) answer the third suggestion.\n\n"
+        "With one participant this is an indication, not a statistically meaningful result; the planned repeat with "
+        "three people did not take place before the freeze (Deviation Log P-05). TC-21 is recorded as a **pass** for "
+        "the primary workflow, with that caveat.\n"
     )
     out.append(
         "## 6. The user interface in a real browser\n\nThe browser half of TC-01, TC-02, TC-07, TC-08, TC-09, TC-11 and "
@@ -603,11 +604,11 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
          "Yes. FR-01 to FR-20 pass at the API, and FR-15 also in the interface (Download Results button)."),
         ("Security validation cases have been executed", "Yes. TC-03, TC-04, TC-13 to TC-18 and TC-23 all pass."),
         ("Traceability is complete", "Yes. All 25 cases map to tests or a manual record, checked automatically."),
-        ("Unresolved defects are documented with severity and status", "Yes, section 8."),
+        ("Unresolved defects are documented with severity and status", "Yes, section 9."),
     ]
     out.append("## 8. Exit criteria (Test Plan 4.3)\n\n| Criterion | Met? |\n|---|---|\n"
                + "\n".join(f"| {c} | {m} |" for c, m in exe_ok) + "\n\n"
-               "The exit criteria are met. Open defects are low or medium severity, except the accepted pickle limitation.\n")
+               "The exit criteria are met. Every defect is closed except DEF-06, the accepted pickle limitation.\n")
     out.append(
         "## 9. Defects\n\n| ID | Defect | Severity | Status |\n|---|---|---|---|\n"
         "| DEF-01 | Authentication not enforced | High | **Closed** by US-11 (pull request #58); TC-17 passes |\n"
@@ -616,8 +617,8 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "| DEF-04 | Memory limit not enforced on Windows | Medium | **Closed** by TEST-10 (#90): a Windows job object limits the evaluation process; `test_memory_limit.py` |\n"
         f"| DEF-05 | Acknowledgement margin was small (about 1.7 s of 2 s), dominated by the model check before the `202` | Low | **Closed** by TEST-04 (#91): about {max(ACK_PACED) if ACK_PACED else 0:.2f} s at a normal pace; back to back {slowest:.2f} s, still within 2 s |\n"
         "| DEF-06 | A malicious model still runs code with the server user's privileges (pickle) | High (inherent) | Accepted, documented |\n"
-        "| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | Open, owner Akshya |\n"
-        "| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |\n"
+        "| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | **Closed**: date and build added from the git history; the build tested had no download control (added in #62). One participant only (Deviation Log P-05) |\n"
+        "| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | **Closed** by TEST-01 (#92): Vitest component and API tests with coverage (figures at the top of this report), run in CI; the whole workflow is also tested in a browser by TEST-07 (#93) |\n"
         "| DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |\n"
         "| DEF-10 | The retention cleanup did not skip files of an evaluation that is still running | Low | **Closed** by TEST-05 (#89): every sweep keeps the files of pending and running evaluations; `test_retention.py` |\n"
         "| DEF-11 | Binary classes not labelled 0 and 1 (`yes`/`no`, `ham`/`spam`) failed: precision, recall and F1 assumed the positive class is 1 | High | **Closed** by TEST-11: the positive class is 1, otherwise the label that sorts last; the results screen says so |\n"

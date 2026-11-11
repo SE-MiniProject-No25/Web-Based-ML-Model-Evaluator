@@ -91,7 +91,7 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 | Part-3 testing and reports | Test reports in `docs/` (#60, #63), TEST-01 frontend tests (#92), TEST-03 Windows CI and coverage thresholds (#88), TEST-07 browser tests (#93), TEST-09 reports regenerated on the final code (#75) |
 | Debugging and fixes from testing | TEST-11 exploratory debugging, DEF-11 to DEF-17 (#86) · TEST-04 acknowledgement time (#91) · TEST-05 retention timer (#89) · TEST-06 git line endings (#87) · TEST-10 Windows memory limit (#90) · metric explanations (#66) |
 | Documents | DOC-01 [Deviation Log](../docs/Deviation_Log.md) · DOC-02 this section and the freeze · DOC-03 [2-minute video](../deliverable-2/Sprint2_Demo.mp4) (#85) · DOC-04 [checklist audit](../docs/Evaluator_Checklist_Audit.md) · DOC-05 [docs index](../docs/README.md) · DOC-06 [viva preparation](../docs/Viva_Prep.md) |
-| Still for the team (cannot be done by one person) | TEST-02 repeat the usability test with three people (#68) · TEST-08 team demo rehearsal (#74) |
+| Not done by the freeze (closed, see Deviation Log P-05, P-07, P-08) | TEST-02 repeat usability test with three people (#68): report corrected, still one participant · TEST-08 team rehearsal (#74): replaced by the automated `demo_check.py` (9 of 9) · TEST-09 sign-off by each member (#75): checked by the team lead · PROC-01 board fields (#84): not re-checked |
 
 The GitHub milestone **Sprint 3** holds these issues.
 
