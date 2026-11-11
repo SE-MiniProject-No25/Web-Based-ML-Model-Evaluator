@@ -73,7 +73,7 @@ The API Error Handler, Authentication Middleware, and Storage Lifecycle Manager 
 
 ![UML component diagram](uml/component.png)
 
-*Source: `uml/component.png`*
+*Source: [`uml/component.puml`](uml/component.puml) (PlantUML)*
 
 The diagram shows the browser, backend/API, validation, security/policy, evaluation, metrics, result, and temporary storage components.
 
@@ -161,7 +161,7 @@ The diagram shows the browser, backend/API, validation, security/policy, evaluat
 
 ![UML sequence diagram: model evaluation](uml/sequence_evaluation.png)
 
-*Source: `uml/sequence_evaluation.png`*
+*Source: [`uml/sequence_evaluation.puml`](uml/sequence_evaluation.puml) (PlantUML)*
 
 Main interaction:
 
@@ -177,7 +177,7 @@ Evaluation runs asynchronously after the `202` response: the Evaluation Service 
 
 ![UML sequence diagram: upload validation](uml/sequence_validation.png)
 
-*Source: `uml/sequence_validation.png`*
+*Source: [`uml/sequence_validation.puml`](uml/sequence_validation.puml) (PlantUML)*
 
 The sequence focuses on the security-sensitive path where user-controlled files are checked before they can reach model execution.
 
