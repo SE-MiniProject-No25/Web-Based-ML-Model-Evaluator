@@ -184,11 +184,15 @@ def test_each_model_gets_a_fresh_process_and_a_new_spare_is_started_at_once():
     pool.warm()
     first_spares = list(pool._spares)
 
-    taken = [pool.take(), pool.take(), pool.take()]
+    taken = []
+    for _ in range(3):
+        taken.append(pool.take())
+        assert len(pool._spares) < 2  # no replacement while the check is under way
+        pool.replenish()  # once it has finished
+        assert len(pool._spares) == 2
 
     assert taken[:2] == first_spares  # oldest first, so the one that has waited longest
     assert len({id(p) for p in taken}) == 3  # never reused
-    assert len(pool._spares) == 2  # topped up after every take
 
 
 def test_a_spare_that_died_is_replaced():

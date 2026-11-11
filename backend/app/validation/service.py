@@ -63,13 +63,21 @@ class InspectorPool:
             self._spares.append(self._new())
 
     def take(self) -> subprocess.Popen:
-        """An inspector for one model: the oldest live spare, otherwise a new process."""
+        """An inspector for one model: the oldest live spare, otherwise a new process.
+
+        The replacement is started by ``replenish()`` once this check has finished, not now: a new
+        process importing scikit-learn competes for the CPU with the check that is under way.
+        """
         with self._lock:
             alive = [p for p in self._spares if p.poll() is None]
             process = alive.pop(0) if alive else self._new()
             self._spares = alive
-            self._top_up()
             return process
+
+    def replenish(self) -> None:
+        """Start replacements for the spares that have been used."""
+        with self._lock:
+            self._top_up()
 
     def resize(self, size: int) -> None:
         self._size = max(size, 0)
@@ -210,6 +218,7 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
             if proc.poll() is None:
                 proc.kill()
                 proc.wait()
+            INSPECTORS.replenish()
 
         if returncode == 1:
             raise AppError(
