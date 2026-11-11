@@ -72,6 +72,7 @@ SYSTEM_TEST_FILES = {
     "test_app.py",
     "test_demo_script.py",
     "test_determinism.py",
+    "test_edge_case_inputs.py",
     "test_evaluation_limits.py",
     "test_evaluation_runner.py",
     "test_failure_paths.py",

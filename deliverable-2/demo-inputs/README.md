@@ -49,6 +49,6 @@ curl -s -X POST http://127.0.0.1:8000/api/evaluations \
 
 To see **authentication**, start the backend with `MLEVAL_AUTH_ENABLED=true` and `MLEVAL_API_KEY=demo-key`. A request without the key is then answered with `401 UNAUTHENTICATED`; add `-H "X-API-Key: demo-key"` and it succeeds (covered by `backend/tests/test_auth.py`).
 
-## Deliberately not included
+## Unusual inputs
 
-Inputs the application currently handles badly are not in this pack, so a demo cannot stumble on them. They are being fixed and tracked in issue #83 (exploratory debugging): text class labels such as `yes` / `no`, CSV headers with spaces after the commas, an Excel-style byte-order mark when the target is the first column, and a semicolon-separated CSV.
+The debugging pass (issue #83) tried text class labels such as `yes` / `no`, CSV headers with spaces after the commas, an Excel byte-order mark, semicolon- and tab-separated files, empty cells, text in numeric columns, and the wrong task type for the data. Each now either works or is stopped with a message that says what to change. They are kept as automated tests in `backend/tests/test_edge_case_inputs.py`, so they are not repeated in this pack.

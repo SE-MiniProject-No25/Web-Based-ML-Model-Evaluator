@@ -51,6 +51,10 @@ _TRUSTED_STATIC_DOMAIN_MESSAGES: dict[ErrorCode, set[str]] = {
         "The dataset file is malformed.",
         "The dataset file is missing a header row.",
         "The dataset file contains ragged rows with inconsistent column counts.",
+        "The dataset must be comma-separated, but this file uses semicolons. "
+        "Save it again as a comma-separated CSV.",
+        "The dataset must be comma-separated, but this file uses tabs. "
+        "Save it again as a comma-separated CSV.",
     },
     ErrorCode.INVALID_MODEL: {
         "The model file could not be loaded or is corrupted.",
