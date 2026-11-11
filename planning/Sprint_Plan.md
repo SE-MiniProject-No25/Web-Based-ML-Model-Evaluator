@@ -71,6 +71,38 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 | EN-03 Integration + Test Report (2) | | | |
 | EN-08 Demo script + rehearsal (1) | | | |
 
+### 2a. What actually happened, and Sprint 3
+
+> The plan above is the plan as made on 7 Oct. Both sprints overran; the differences are deviations P-01 and P-02 in the [Deviation Log](../docs/Deviation_Log.md#2-process-deviations).
+
+| Sprint | Planned | Points planned | When the points were merged |
+|---|---|---|---|
+| Sprint 1 | 7–13 Oct | 43 | 26 on 14 Oct, a day late (EN-01, EN-04, EN-05, EN-06, US-01, US-02, US-06, US-07, US-08); EN-02 and US-19 (6) on 22 Oct; US-20 and US-12 to US-14 (11) on 28 Oct (#45) |
+| Sprint 2 | 14–20 Oct | 36 | None by 20 Oct; all 36 on 3–10 Nov (#48–#62) |
+| **Sprint 3** | **3–11 Nov** | Sprint 2's 36 points + Part 3 | 36 + the Part-3 work below |
+
+**Why a third sprint.** By the planned end of Sprint 2 (20 Oct) only 26 of the 79 points were merged. The one-week estimates did not allow for integration, and a Windows-only bug (every valid model rejected, #44) held up the metrics and frontend work until 28 Oct. The rest of Sprint 1 was finished by 28 Oct. The Part-3 brief allows an optional Sprint 3 for spill-over, run in parallel with testing, so Sprint 2's 36 points and the Part-3 testing and debugging became Sprint 3.
+
+**Sprint 3: Wed 3 Nov to Wed 11 Nov 2026.** Goal: finish the spill-over, test everything against the Test Plan, fix what testing finds, and freeze.
+
+| Work | Items |
+|---|---|
+| Spill-over from Sprint 2 | US-03, US-04, US-05, EN-03, EN-07, EN-08 (Adyanth) · US-09, US-10, US-11 (Akash) · US-15 to US-18 (Akshath) · US-21, US-22 (Akshya) |
+| Part-3 testing and reports | Test reports in `docs/` (#60, #63), TEST-01 frontend tests (#92), TEST-03 Windows CI and coverage thresholds (#88), TEST-07 browser tests (#93), TEST-09 reports regenerated on the final code (#75) |
+| Debugging and fixes from testing | TEST-11 exploratory debugging, DEF-11 to DEF-17 (#86) · TEST-04 acknowledgement time (#91) · TEST-05 retention timer (#89) · TEST-06 git line endings (#87) · TEST-10 Windows memory limit (#90) · metric explanations (#66) |
+| Documents | DOC-01 [Deviation Log](../docs/Deviation_Log.md) · DOC-02 this section and the freeze · DOC-03 [2-minute video](../deliverable-2/Sprint2_Demo.mp4) (#85) · DOC-04 [checklist audit](../docs/Evaluator_Checklist_Audit.md) · DOC-05 [docs index](../docs/README.md) · DOC-06 [viva preparation](../docs/Viva_Prep.md) |
+| Still for the team (cannot be done by one person) | TEST-02 repeat the usability test with three people (#68) · TEST-08 team demo rehearsal (#74) |
+
+The GitHub milestone **Sprint 3** holds these issues.
+
+### 2b. Development freeze
+
+| | |
+|---|---|
+| **Frozen** | 11 Nov 2026, at the merge of the final documentation pull request |
+| **Tag** | `v1.0` on `main`, with release notes on GitHub |
+| **After the freeze** | Only bug fixes, each through a pull request with one approving review (branch protection on `main`) |
+
 ---
 
 ## 3. Calendar

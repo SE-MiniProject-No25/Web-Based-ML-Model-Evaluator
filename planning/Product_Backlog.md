@@ -1,6 +1,8 @@
 # Product Backlog
 ## Web-Based ML Model Evaluator
 
+> **Deviations (as built).** Sprint 1 and Sprint 2 overran and a Sprint 3 (3–11 Nov) finished the spill-over and the Part-3 testing ([Deviation Log P-01, P-02](../docs/Deviation_Log.md#2-process-deviations); [Sprint Plan §2a](Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)). US-09, US-10 and US-11 were tracked under the test-story issues US-23 to US-28 (#25–#30) and built in #56–#58 (P-03).
+
 Every Functional (FR) and Non-Functional (NFR) requirement in the [SRS](../deliverable-1/01_SRS.md) is covered by at least one backlog item below, and every test case in the [Test Plan](../deliverable-1/02_Test_Plan.md) is owned by one. Sprint dates, roles and workflow are in the [Sprint Plan](Sprint_Plan.md).
 
 Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.

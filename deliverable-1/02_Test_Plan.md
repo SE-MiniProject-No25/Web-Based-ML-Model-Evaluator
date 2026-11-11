@@ -1,6 +1,8 @@
 # Software Test Plan
 ## Web-Based ML Model Evaluator
 
+> **Deviations (as built).** The test cases in section 8 were updated to match what was built (Part 3). Changes that affect testing are in the [Deviation Log](../docs/Deviation_Log.md): TC-15 memory limit on all three systems ([D-07](../docs/Deviation_Log.md#1-design-deviations)), TC-18 retention on a timer (D-06), TC-19 acknowledgement time with spare inspectors (D-11), and the interface halves of TC-01, TC-02 and TC-07 automated in the browser (D-16).
+
 
 ## 1. Introduction
 

@@ -1,16 +1,22 @@
-# React + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The web interface of the ML Model Evaluator: React and Vite, in four steps (Upload → Configure → Run → Results). It talks to the backend only through the API in [Architecture §10](../deliverable-1/03_Architecture_and_Design.md#10-api-design).
 
-Currently, two official plugins are available:
+```bash
+npm install
+npm run dev        # http://localhost:5173, with /api forwarded to the backend on port 8000
+npm test           # component and API tests (Vitest, React Testing Library)
+npm run coverage   # the same, with line and branch coverage in coverage/
+npm run lint
+npm run build
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| File | What it does |
+|---|---|
+| `src/App.jsx` | The four-step workflow, its checks (file type, size, CSV header and separator), status polling, results table, chart and download |
+| `src/api.js` | Calls the three endpoints and turns errors into `ApiError` (code, message, network failure) |
+| `src/metrics.js` | Metric names, plain-language explanations and how the chart scales each metric |
+| `src/mockAPI.js` | An in-memory stand-in for the backend: start with `VITE_USE_MOCK=true` |
+| `src/test/` | The tests |
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+`VITE_API_TARGET` sends `/api` to another backend address, for example a backend on another port (the browser tests in `../e2e/` use this).

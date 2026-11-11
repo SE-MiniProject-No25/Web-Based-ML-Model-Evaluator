@@ -90,8 +90,8 @@ def run_suite(work: Path, html_dir: Path) -> None:
     )  # fmt: skip
 
 
-def measure_ack_times() -> list[float]:
-    """Start a real server and time 10 valid submissions, as in TC-19."""
+def measure_ack_times(pause: float = 0.0) -> list[float]:
+    """Start a real server and time 10 valid submissions, as in TC-19, ``pause`` seconds apart."""
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
@@ -110,7 +110,8 @@ def measure_ack_times() -> list[float]:
                     break
             except httpx.TransportError:
                 time.sleep(0.2)
-        return measure(f"http://127.0.0.1:{port}", runs=10)
+        time.sleep(3)  # let the spare model inspectors start, as on a server that has been up a moment
+        return measure(f"http://127.0.0.1:{port}", runs=10, pause=pause)
     finally:
         server.kill()
         server.wait()
@@ -257,6 +258,7 @@ def frontend_results() -> dict | None:
 
 
 FRONTEND: dict | None = None
+ACK_PACED: list[float] = []
 
 
 def scope_note() -> str:
@@ -289,10 +291,20 @@ REASONS: dict[str, list] = {
     ],
     "app/evaluation/worker.py": [
         (range(32, 34), "POSIX only: applying the memory limit needs the `resource` module, which Windows does not have. Runs in the Linux CI job."),
-        (range(87, 89), "The `if __name__ == \"__main__\"` entry point. The system tests run it as a child process, which coverage does not follow."),
+        (range(128, 130), "The `if __name__ == \"__main__\"` entry point. The system tests run it as a child process, which coverage does not follow."),
     ],
     "app/validation/model_inspector.py": [
-        (range(37, 39), "The `if __name__ == \"__main__\"` entry point. The system tests run it as a child process, which coverage does not follow."),
+        (range(58, 61), "The `if __name__ == \"__main__\"` entry point. The system tests (and the spare inspectors) run it as a child process, which coverage does not follow."),
+    ],
+    "app/metrics/service.py": [
+        (range(76, 78), "Labels of different types (numbers and text together). The runner compares such labels as text, or rejects them, before scoring, so this fallback is only a safety net."),
+    ],
+    "app/evaluation/runner.py": [
+        (range(120, 124), "The memory limit is always applied on Windows (where these reports were generated), so the branch for no job object runs only on Linux and macOS, in the Linux CI job."),
+    ],
+    "app/security/memory_limit.py": [
+        (range(82, 85), "Windows refusing to create a job object: an operating-system failure that cannot be caused from a test. The evaluation then runs with its time limit only, and a warning is logged."),
+        (range(92, 97), "Windows refusing to apply the limit to the process: an operating-system failure that cannot be caused from a test. Same fallback as above."),
     ],
     "app/storage/temp_storage.py": [
         (range(41, 43), "Ignoring a failed permission change: only happens on file systems that do not support it."),
@@ -506,10 +518,10 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "TC-02": "API accepts a valid CSV; the UI lists the detected columns (section 6).",
         "TC-07": "Each missing field gives `400 MISSING_REQUIRED_FIELD`. In the UI the Next button stays disabled (section 6).",
         "TC-12": "Download works through the API and through the interface's Download Results button (section 6).",
-        "TC-15": "Time limit proven end to end; memory limit proven on Linux (CI) and not enforced on Windows (DEF-04).",
+        "TC-15": "Time limit proven end to end; memory limit proven on Linux (CI) and on Windows (job object, TEST-10).",
         "TC-16": "Validation errors, runtime errors, unknown URLs and unexpected exceptions leak no trace, secret or path.",
         "TC-17": "Optional API key (`X-API-Key` or `Authorization: Bearer`); fails secure if enabled with no key.",
-        "TC-18": "Expired files are removed. The sweep runs when a new evaluation is submitted, not on a timer (DEF-02, DEF-10).",
+        "TC-18": "Expired files are removed at start-up, on a timer and after each submission; files of unfinished evaluations are kept (TEST-05).",
         "TC-19": f"Slowest of 10: {slowest:.2f} s against the 2 s limit (section 3).",
         "TC-20": "Three identical runs give identical metrics, classification and regression.",
         "TC-21": "A person outside the team completed the workflow unaided; see section 5 for the caveats.",
@@ -529,13 +541,17 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
     out.append(
         "## 3. Performance (TC-19, NFR-02)\n\n10 valid requests one after another against a local server, "
         "seconds until the `202`:\n\n| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |\n|---|---|---|---|---|---|---|---|---|---|\n"
-        f"| {ack_rows} |\n\nSlowest {slowest:.3f} s, mean {mean:.3f} s; the limit is 2 s. "
+        f"| {ack_rows} |\n\nBack to back: slowest {slowest:.3f} s, mean {mean:.3f} s; the limit is 2 s. "
         + ("All are within the limit" if slowest < 2 else "**The limit was exceeded**")
-        + f", with {(2 - slowest):.2f} s to spare in the worst case. Almost all of the time is the model check done "
-        "before the `202` (a child process loads scikit-learn to open the model), see DEF-05. The figure varies from "
-        "run to run: on 10 November three further runs on an otherwise idle machine had slowest times of 1.74, 1.72 "
-        "and 1.82 s, and this run, which started right after the test suite, 1.89 s. Treat the margin as roughly "
-        "0.1 to 0.3 s on this laptop.\n"
+        + f", with {(2 - slowest):.2f} s to spare in the worst case.\n\n"
+        "**One second apart** (a person using the interface cannot submit faster): "
+        + " | ".join(f"{t:.3f}" for t in ACK_PACED)
+        + (f"; slowest {max(ACK_PACED):.3f} s.\n\n" if ACK_PACED else ".\n\n")
+        + "Almost all of the time used to be the model check before the `202`: a new child process importing "
+        "scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn "
+        "already imported, and each model is still checked in its own fresh process. At a normal pace every request "
+        "gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, "
+        "which is why the back-to-back figure stays higher (DEF-05).\n"
     )
     out.append(
         "## 4. Determinism (TC-20, NFR-03)\n\nThe tests in `tests/test_determinism.py` submit the same model and "
@@ -573,9 +589,9 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "| File validation | Pass: unsupported and malformed files rejected before execution (TC-03, TC-14, TC-23) |\n"
         "| Size limits | Pass (TC-04) |\n| Path handling | Pass (TC-13) |\n"
         "| Input validation | Pass: task type and target checked on the server (TC-05, TC-06) |\n"
-        "| Resource protection | Pass on Linux and macOS; time limit only on Windows (TC-15, DEF-04) |\n"
+        "| Resource protection | Pass: time and memory limits on Linux, macOS and Windows (TC-15) |\n"
         "| Error disclosure | Pass (TC-16): standard error format everywhere, including unknown URLs and unexpected exceptions |\n"
-        "| Temporary data | Pass with a limitation (TC-18, DEF-02) |\n"
+        "| Temporary data | Pass: removed on a timer, never while in use (TC-18) |\n"
         "| Authentication | Pass (TC-17); off by default, so a deployment must switch it on |\n\n"
         "Accepted limitation, documented in the README: a model file is a pickle and runs code when loaded. Models are "
         "only opened in a child process with a sanitized environment and limits. That is process isolation, not a "
@@ -595,15 +611,15 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
     out.append(
         "## 9. Defects\n\n| ID | Defect | Severity | Status |\n|---|---|---|---|\n"
         "| DEF-01 | Authentication not enforced | High | **Closed** by US-11 (pull request #58); TC-17 passes |\n"
-        "| DEF-02 | Uploaded files were never deleted | High | **Closed with a limitation**: US-10 (#57) removes expired files, but only when a new evaluation is submitted; with no new requests they stay until the next one. Low severity now |\n"
+        "| DEF-02 | Uploaded files were never deleted | High | **Closed**: US-10 (#57) removes expired files; since TEST-05 (#89) also at start-up and every 300 s, without waiting for a request |\n"
         "| DEF-03 | Unknown URLs returned the framework's default error body | Low | **Closed** by US-09 (#56); verified: `GET /api/nope` gives `404 {\"error\": {\"code\": \"NOT_FOUND\", ...}}` |\n"
-        "| DEF-04 | Memory limit not enforced on Windows | Medium | Accepted, documented in the README |\n"
-        f"| DEF-05 | Acknowledgement margin is small on Windows ({slowest:.2f} s of 2 s), dominated by the model check before the `202` | Low | Open, monitor |\n"
+        "| DEF-04 | Memory limit not enforced on Windows | Medium | **Closed** by TEST-10 (#90): a Windows job object limits the evaluation process; `test_memory_limit.py` |\n"
+        f"| DEF-05 | Acknowledgement margin was small (about 1.7 s of 2 s), dominated by the model check before the `202` | Low | **Closed** by TEST-04 (#91): about {max(ACK_PACED) if ACK_PACED else 0:.2f} s at a normal pace; back to back {slowest:.2f} s, still within 2 s |\n"
         "| DEF-06 | A malicious model still runs code with the server user's privileges (pickle) | High (inherent) | Accepted, documented |\n"
         "| DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | Open, owner Akshya |\n"
         "| DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |\n"
         "| DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |\n"
-        "| DEF-10 | The retention cleanup does not skip files of an evaluation that is still running. With the defaults (retention 3600 s, evaluation limit 60 s) this cannot happen, but a retention shorter than a run could delete files mid-evaluation | Low | Open, owner Akash |\n"
+        "| DEF-10 | The retention cleanup did not skip files of an evaluation that is still running | Low | **Closed** by TEST-05 (#89): every sweep keeps the files of pending and running evaluations; `test_retention.py` |\n"
         "| DEF-11 | Binary classes not labelled 0 and 1 (`yes`/`no`, `ham`/`spam`) failed: precision, recall and F1 assumed the positive class is 1 | High | **Closed** by TEST-11: the positive class is 1, otherwise the label that sorts last; the results screen says so |\n"
         "| DEF-12 | A CSV with spaces after the commas (`a, b, label`) was rejected with `INVALID_TARGET_COLUMN`, because the interface sends the trimmed column name | Medium | **Closed** by TEST-11: names are compared without surrounding spaces |\n"
         "| DEF-13 | An Excel byte-order mark made the first column `\\ufefflabel`, so a target in the first column was rejected | Medium | **Closed** by TEST-11: the file is read as `utf-8-sig` |\n"
@@ -649,6 +665,10 @@ def main() -> int:
         run_suite(work, html_dir)
         (work / "ack.txt").write_text(",".join(str(t) for t in measure_ack_times()))
     ack_times = [float(x) for x in (work / "ack.txt").read_text().split(",")]
+    if not (work / "ack_paced.txt").exists():
+        (work / "ack_paced.txt").write_text(",".join(str(t) for t in measure_ack_times(pause=1.0)))
+    global ACK_PACED
+    ACK_PACED = [float(x) for x in (work / "ack_paced.txt").read_text().split(",")]
 
     global FRONTEND
     FRONTEND = frontend_results()

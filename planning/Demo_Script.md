@@ -121,6 +121,8 @@ Do not claim anything that is not in the [System Validation Report](../docs/Syst
 
 The whole team rehearses once, with the script above and a stopwatch. Fill this in afterwards.
 
+**Pre-flight check on the frozen code:** 11 Nov 2026, branch `docs/sprint3-final-docs` (all Sprint 3 work combined), `python scripts/demo_check.py`: `9 of 9 demo scenarios behave as scripted`. Run it again on `main` on the day.
+
 | Date | Who took part | Total time | Problems found and fixed |
 |---|---|---|---|
 | | | | |

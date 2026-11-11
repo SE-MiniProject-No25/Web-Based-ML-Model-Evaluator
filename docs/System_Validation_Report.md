@@ -3,13 +3,19 @@
 
 | | |
 |---|---|
-| **Date** | 10 November 2026 |
-| **Code** | `main` at commit `8200b89f`, plus the tests and documents added by the pull request that contains these reports |
+| **Date** | 11 November 2026 |
+| **Code** | `main` at commit `253d236b`, plus the tests and documents added by the pull request that contains these reports |
 | **Environment** | Windows 11, Python 3.13.7, pytest 9.1.1, coverage.py 7.17.2, FastAPI 0.116.2, scikit-learn 1.9.1 |
 | **Reproduce** | `cd backend`, `pip install -r requirements-dev.txt`, `python scripts/generate_reports.py` |
 
 
-**Scope.** These reports cover the backend (`backend/app`). The frontend has no automated tests, so it has no unit-test or coverage figures; it was checked by hand against a running backend (System Validation Report, section 6). Adding frontend tests is listed as a defect (DEF-08).
+**Scope.** The figures below are for the backend (`backend/app`, pytest and coverage.py). The frontend (`frontend/src`) has its own tests (Vitest and React Testing Library, `npm run coverage`): **28 of 28 passed**, **88.3% of lines** and **75.8% of branches** covered:
+
+| Frontend file | Lines | Branches |
+|---|---|---|
+| `frontend/src/App.jsx` | 87.0% | 71.3% |
+| `frontend/src/api.js` | 91.1% | 87.1% |
+| `frontend/src/metrics.js` | 100.0% | 100.0% |
 
 Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases, TC-01 to TC-25) against the complete application. It replaces `planning/Test_Report.md` (3 November), which was written before authentication, safe error responses, secure storage, the determinism tests and the usability test were merged.
 
@@ -21,7 +27,7 @@ Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases,
 | **Fail** | 0 |
 | Of those, with a limitation | TC-15 (memory limit not enforced on Windows), TC-18 (cleanup runs on the next submission, not on a timer), TC-21 (see section 5) |
 
-The automated suite has 288 tests: 286 passed, 0 failed, 2 skipped (the memory-limit tests only run on Linux, in CI). Since the previous report, authentication (TC-17) and cleanup of temporary files (TC-18) have been built and now pass, so the two failures recorded then are closed.
+The automated suite has 341 tests: 340 passed, 0 failed, 1 skipped (the memory-limit tests only run on Linux, in CI). Since the previous report, authentication (TC-17) and cleanup of temporary files (TC-18) have been built and now pass, so the two failures recorded then are closed.
 
 ## 2. Results by test case
 
@@ -41,11 +47,11 @@ The automated suite has 288 tests: 286 passed, 0 failed, 2 skipped (the memory-l
 | TC-12 | Download | Pass | 2/2 | Download works through the API and through the interface's Download Results button (section 6). |
 | TC-13 | Path-like filename | Pass | 11/11 |  |
 | TC-14 | Malformed model | Pass | 4/4 |  |
-| TC-15 | Resource limits | Pass | 2/3, 1 skipped | Time limit proven end to end; memory limit proven on Linux (CI) and not enforced on Windows (DEF-04). |
+| TC-15 | Resource limits | Pass | 4/4 | Time limit proven end to end; memory limit proven on Linux (CI) and on Windows (job object, TEST-10). |
 | TC-16 | No sensitive errors | Pass | 5/5 | Validation errors, runtime errors, unknown URLs and unexpected exceptions leak no trace, secret or path. |
 | TC-17 | Authentication | Pass | 7/7 | Optional API key (`X-API-Key` or `Authorization: Bearer`); fails secure if enabled with no key. |
-| TC-18 | Temporary cleanup | Pass | 4/4 | Expired files are removed. The sweep runs when a new evaluation is submitted, not on a timer (DEF-02, DEF-10). |
-| TC-19 | Acknowledgement time | Pass | 1/1 | Slowest of 10: 1.89 s against the 2 s limit (section 3). |
+| TC-18 | Temporary cleanup | Pass | 7/7 | Expired files are removed at start-up, on a timer and after each submission; files of unfinished evaluations are kept (TEST-05). |
+| TC-19 | Acknowledgement time | Pass | 1/1 | Slowest of 10: 1.62 s against the 2 s limit (section 3). |
 | TC-20 | Determinism | Pass | 2/2 | Three identical runs give identical metrics, classification and regression. |
 | TC-21 | Usability | Pass (manual) | - | A person outside the team completed the workflow unaided; see section 5 for the caveats. |
 | TC-22 | Unique ID, terminal state | Pass | 5/5 |  |
@@ -61,9 +67,13 @@ Which tests cover each case is recorded in `backend/tests/traceability.py` and c
 
 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
 |---|---|---|---|---|---|---|---|---|---|
-| 1.675 | 1.601 | 1.604 | 1.659 | 1.639 | 1.614 | 1.639 | 1.652 | 1.724 | 1.893 |
+| 1.152 | 0.123 | 1.624 | 0.136 | 1.581 | 0.161 | 1.563 | 0.168 | 1.567 | 0.165 |
 
-Slowest 1.893 s, mean 1.670 s; the limit is 2 s. All are within the limit, with 0.11 s to spare in the worst case. Almost all of the time is the model check done before the `202` (a child process loads scikit-learn to open the model), see DEF-05. The figure varies from run to run: on 10 November three further runs on an otherwise idle machine had slowest times of 1.74, 1.72 and 1.82 s, and this run, which started right after the test suite, 1.89 s. Treat the margin as roughly 0.1 to 0.3 s on this laptop.
+Back to back: slowest 1.624 s, mean 0.824 s; the limit is 2 s. All are within the limit, with 0.38 s to spare in the worst case.
+
+**One second apart** (a person using the interface cannot submit faster): 0.165 | 0.124 | 0.130 | 0.135 | 0.145 | 0.138 | 0.126 | 0.141 | 0.159 | 0.124; slowest 0.165 s.
+
+Almost all of the time used to be the model check before the `202`: a new child process importing scikit-learn (about 1.6 s). Since TEST-04 (#91), two spare inspector processes wait with scikit-learn already imported, and each model is still checked in its own fresh process. At a normal pace every request gets a ready spare; back-to-back requests faster than one a second can still wait for a new spare's import, which is why the back-to-back figure stays higher (DEF-05).
 
 ## 4. Determinism (TC-20, NFR-03)
 
@@ -80,18 +90,18 @@ Two things in that report need correcting before it is relied on:
 
 With one participant this is an indication, not a statistically meaningful result. TC-21 is recorded as a **pass** for the primary workflow, with those caveats (DEF-07).
 
-## 6. Manual checks of the user interface
+## 6. The user interface in a real browser
 
-The browser half of TC-01, TC-02 and TC-07 has no automated test. The interface (the step-by-step version from pull request #47) was exercised by hand against a running backend with the reference files:
+The browser half of TC-01, TC-02, TC-07, TC-08, TC-09, TC-11 and TC-12 is automated in `e2e/test_workflow.py` (TEST-07): Playwright drives Chromium against the real frontend and a real backend started for the run, with the demo inputs, and the tests run in CI. They check that:
 
-- After choosing a model and a CSV, the Configure step lists the detected columns.
-- With a file missing, the Next button is disabled, so an empty submission cannot be sent from the page.
-- A model or CSV over 10 MB is refused in the browser with a size message.
-- A classification run and a regression run completed and displayed their metrics in a table and a bar chart (screenshots in `planning/demo/`).
-- **Download Results** appears only once the evaluation has completed; clicking it saved `evaluation-<id>.json` with every field in the specification and the same accuracy as the screen (0.9625).
-- With the backend stopped, submitting shows "The evaluation server is temporarily unavailable" and the user can try again; a server-side rejection (a malformed CSV) returns the user to the Upload step with the server's message and "Please correct the highlighted field(s)".
-- A mismatched dataset ended *failed* with a message naming the missing and unused columns; a corrupt model and a malformed CSV were rejected with a plain message on the review step.
-- With the backend stopped, submitting keeps the user on the review step with an error and the button usable.
+- a classification run and a regression run show their metrics in the table (with the explanations) and the chart, with the expected values;
+- **Download Results** saves `evaluation-<id>.json` with the status, the target column and the same accuracy as the screen;
+- a malformed CSV is rejected and the message is shown next to the dataset field, with no download offered;
+- a mismatched dataset ends *failed* with a message naming the missing and unused columns;
+- a `.txt` model is refused as soon as it is chosen, and the next step stays disabled;
+- with the backend unreachable, submitting shows "Unable to connect to the evaluation server".
+
+Run them with `python -m pytest e2e` (see the README). The component tests in `frontend/src/test/` cover the same screens at a finer grain (TEST-01).
 
 ## 7. Security validation (Test Plan 5.1)
 
@@ -101,9 +111,9 @@ The browser half of TC-01, TC-02 and TC-07 has no automated test. The interface 
 | Size limits | Pass (TC-04) |
 | Path handling | Pass (TC-13) |
 | Input validation | Pass: task type and target checked on the server (TC-05, TC-06) |
-| Resource protection | Pass on Linux and macOS; time limit only on Windows (TC-15, DEF-04) |
+| Resource protection | Pass: time and memory limits on Linux, macOS and Windows (TC-15) |
 | Error disclosure | Pass (TC-16): standard error format everywhere, including unknown URLs and unexpected exceptions |
-| Temporary data | Pass with a limitation (TC-18, DEF-02) |
+| Temporary data | Pass: removed on a timer, never while in use (TC-18) |
 | Authentication | Pass (TC-17); off by default, so a deployment must switch it on |
 
 Accepted limitation, documented in the README: a model file is a pickle and runs code when loaded. Models are only opened in a child process with a sanitized environment and limits. That is process isolation, not a sandbox (DEF-06).
@@ -125,15 +135,26 @@ The exit criteria are met. Open defects are low or medium severity, except the a
 | ID | Defect | Severity | Status |
 |---|---|---|---|
 | DEF-01 | Authentication not enforced | High | **Closed** by US-11 (pull request #58); TC-17 passes |
-| DEF-02 | Uploaded files were never deleted | High | **Closed with a limitation**: US-10 (#57) removes expired files, but only when a new evaluation is submitted; with no new requests they stay until the next one. Low severity now |
+| DEF-02 | Uploaded files were never deleted | High | **Closed**: US-10 (#57) removes expired files; since TEST-05 (#89) also at start-up and every 300 s, without waiting for a request |
 | DEF-03 | Unknown URLs returned the framework's default error body | Low | **Closed** by US-09 (#56); verified: `GET /api/nope` gives `404 {"error": {"code": "NOT_FOUND", ...}}` |
-| DEF-04 | Memory limit not enforced on Windows | Medium | Accepted, documented in the README |
-| DEF-05 | Acknowledgement margin is small on Windows (1.89 s of 2 s), dominated by the model check before the `202` | Low | Open, monitor |
+| DEF-04 | Memory limit not enforced on Windows | Medium | **Closed** by TEST-10 (#90): a Windows job object limits the evaluation process; `test_memory_limit.py` |
+| DEF-05 | Acknowledgement margin was small (about 1.7 s of 2 s), dominated by the model check before the `202` | Low | **Closed** by TEST-04 (#91): about 0.17 s at a normal pace; back to back 1.62 s, still within 2 s |
 | DEF-06 | A malicious model still runs code with the server user's privileges (pickle) | High (inherent) | Accepted, documented |
 | DEF-07 | The usability report has no test date, so its remark about a download control cannot be tied to a build | Low | Open, owner Akshya |
 | DEF-08 | The frontend has no automated tests and no coverage figures | Medium | Open |
 | DEF-09 | The interface had no control to download results, so TC-12 was only met through the API | Medium | **Closed** by US-17 (pull request #62); verified: the button appears once an evaluation completes and saves `evaluation-<id>.json` with every field |
-| DEF-10 | The retention cleanup does not skip files of an evaluation that is still running. With the defaults (retention 3600 s, evaluation limit 60 s) this cannot happen, but a retention shorter than a run could delete files mid-evaluation | Low | Open, owner Akash |
+| DEF-10 | The retention cleanup did not skip files of an evaluation that is still running | Low | **Closed** by TEST-05 (#89): every sweep keeps the files of pending and running evaluations; `test_retention.py` |
+| DEF-11 | Binary classes not labelled 0 and 1 (`yes`/`no`, `ham`/`spam`) failed: precision, recall and F1 assumed the positive class is 1 | High | **Closed** by TEST-11: the positive class is 1, otherwise the label that sorts last; the results screen says so |
+| DEF-12 | A CSV with spaces after the commas (`a, b, label`) was rejected with `INVALID_TARGET_COLUMN`, because the interface sends the trimmed column name | Medium | **Closed** by TEST-11: names are compared without surrounding spaces |
+| DEF-13 | An Excel byte-order mark made the first column `\ufefflabel`, so a target in the first column was rejected | Medium | **Closed** by TEST-11: the file is read as `utf-8-sig` |
+| DEF-14 | A semicolon- or tab-separated file was rejected with a misleading `INVALID_TARGET_COLUMN` (the interface detected the separator, the server did not) | Low | **Closed** by TEST-11: both reject it, naming the separator |
+| DEF-15 | Empty cells in the target or a feature, or text in a numeric column, ended as the generic "could not be completed" | Medium | **Closed** by TEST-11: `INCOMPATIBLE_INPUTS` naming the count or the columns (only when the model fails; a pipeline that fills empty cells still works) |
+| DEF-16 | A text target with Regression, or a regression model with Classification, ended as the generic failure | Medium | **Closed** by TEST-11: `INCOMPATIBLE_INPUTS` saying which task type to choose |
+| DEF-17 | The regression chart drew MSE and R² on one scale, so R² was invisible next to MSE | Low | **Closed** by TEST-11: scores are drawn from 0 to 1, MAE and RMSE share a scale, MSE is in the table only |
+
+### Exploratory testing (TEST-11)
+
+Unusual inputs were tried through the API and the interface: labels other than 0 and 1 and text labels, three text classes, empty cells in the target and in features, text in a numeric column, a header with spaces, a byte-order mark, semicolon and tab separators, a one-row dataset, a header-only dataset, 500 feature columns, a text target with Regression, a regression model with Classification, the same submission repeated, two submissions at the same moment on a real server, and unusual filenames (spaces, non-Latin letters, `..\\`, upper-case extensions). DEF-11 to DEF-17 were found and fixed; everything else already behaved. Every input is kept as a test in `tests/test_edge_case_inputs.py`.
 
 ## 10. Changes to test cases
 

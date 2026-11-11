@@ -28,6 +28,7 @@ def age(path, seconds):
 
 def test_a_negative_age_limit_is_treated_as_zero(storage):
     path = storage.save(b"x", ".csv")
+    age(path, 1)
     assert storage.cleanup_expired(max_age_seconds=-50) == [path]
 
 
@@ -42,6 +43,9 @@ def test_directories_inside_the_store_are_never_deleted_by_the_sweep(storage):
 
 def test_a_file_that_cannot_be_deleted_is_logged_and_does_not_stop_the_sweep(storage, monkeypatch, caplog):
     first, second = storage.save(b"1", ".csv"), storage.save(b"2", ".csv")
+    # Windows can stamp a new file a fraction of a second "in the future", so age them clearly.
+    age(first, 10)
+    age(second, 10)
     real_delete = storage.delete
 
     def delete_unless_first(path):
