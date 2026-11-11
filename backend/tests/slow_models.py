@@ -66,3 +66,11 @@ class NotCallablePredictModel:
     """Has an attribute called predict that is not a function."""
 
     predict = "not callable"
+
+
+class SixHundredMegabyteModel:
+    """Needs about 600 MB to predict: fails under a 300 MB limit, works without one."""
+
+    def predict(self, X):
+        block = bytearray(600 * 1024 * 1024)
+        return [int(len(block) > 0)] * len(X)

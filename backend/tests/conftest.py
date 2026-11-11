@@ -76,6 +76,7 @@ SYSTEM_TEST_FILES = {
     "test_evaluation_limits.py",
     "test_evaluation_runner.py",
     "test_failure_paths.py",
+    "test_memory_limit.py",
     "test_openapi.py",
 }
 

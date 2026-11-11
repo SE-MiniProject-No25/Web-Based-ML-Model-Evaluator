@@ -55,6 +55,7 @@ AUTOMATED = {
         "tests/test_evaluation_limits.py::test_exceeding_the_time_limit_stops_the_evaluation",
         "tests/test_evaluation_limits.py::test_api_stops_an_evaluation_that_exceeds_the_time_limit",
         "tests/test_evaluation_limits.py::test_exceeding_the_memory_limit_stops_the_evaluation",
+        "tests/test_memory_limit.py::test_a_model_over_the_limit_is_stopped_on_windows",
     ],
     "TC-16": [
         "tests/test_api_submit.py::test_error_responses_use_the_standard_format_without_internal_details",
