@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, File, Form, Request, Response, UploadFile
 
 from app.api.docs import DOWNLOAD_RESPONSES, FIELD_DESCRIPTIONS, STATUS_RESPONSES, SUBMIT_RESPONSES
+from app.api.retention import sweep_expired_artifacts
 from app.errors import AppError, ErrorCode
 from app.evaluation import run_evaluation
 from app.results import Status, format_download, format_status
@@ -73,7 +74,7 @@ def submit_evaluation(
         dataset_path=dataset_path,
     )
     background_tasks.add_task(run_evaluation, evaluation.id, state.results, settings=state.settings)
-    background_tasks.add_task(state.storage.cleanup_expired)
+    background_tasks.add_task(sweep_expired_artifacts, state)
     return {"evaluation_id": evaluation.id, "status": evaluation.status.value}
 
 
