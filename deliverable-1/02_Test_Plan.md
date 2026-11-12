@@ -269,7 +269,7 @@ A representative user shall attempt the primary workflow without developer assis
 | SEC-07 | Temporary cleanup | TC-18 | Storage Lifecycle Manager |
 | SEC-08 | Server-side input validation | TC-05, TC-06 | API + Validation |
 
-Test execution results are in the [Test Report](../planning/Test_Report.md). Which automated tests cover each case is recorded in `backend/tests/traceability.py`, and `python scripts/tc_report.py` (run from `backend/`) regenerates the per-case result table.
+Test execution results are in the [System Validation Report](../docs/System_Validation_Report.md) (the earlier Sprint 2 [Test Report](../planning/Test_Report.md) is superseded). Which automated tests cover each case is recorded in `backend/tests/traceability.py`, and `python scripts/tc_report.py` (run from `backend/`) regenerates the per-case result table.
 
 ---
 
