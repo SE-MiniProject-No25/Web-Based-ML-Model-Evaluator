@@ -1,15 +1,18 @@
-"""Input Validation Service.
+"""Inspect an uploaded model in a fresh isolated child process.
 
-Validates that all required fields are present, file extensions are allowed,
-task types are supported, uploads comply with configured size limits (US-06),
-models and datasets are well-formed (US-07), and target columns exist in the
-dataset header (US-08). Keep ``validate_submission`` as the single entry point
-called by the API.
+    Deserializing untrusted pickle/joblib files can execute arbitrary bytecode.
+    Inspection runs in a separate process with a timeout and sanitized
+    environment to isolate the web server from crashes, memory corruption,
+    and hangs.
+
+    LIMITATION: This is process isolation, not an unprivileged container
+    sandbox. The child process retains the privileges of the host user.
 """
 
 import atexit
 import csv
 import io
+import logging
 import subprocess
 import sys
 import tempfile
@@ -21,75 +24,176 @@ from app.config import Settings
 from app.errors import AppError, ErrorCode
 from app.security import sanitized_env
 
+logger = logging.getLogger(__name__)
+
 TASK_TYPES = ("classification", "regression")
 INSPECTOR_SCRIPT = str(Path(__file__).resolve().parent / "model_inspector.py")
 
 
 def _start_inspector() -> subprocess.Popen:
-    """A new, isolated inspector process. It imports scikit-learn, then waits for one model on stdin."""
-    return subprocess.Popen(
+    """Start an isolated inspector and wait until its imports are ready."""
+    proc = subprocess.Popen(
         [sys.executable, INSPECTOR_SCRIPT],
         stdin=subprocess.PIPE,
-        stdout=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         cwd=tempfile.gettempdir(),
         env=sanitized_env(),
     )
 
+    ready_event = threading.Event()
+    ready_line = []
+
+    def read_ready() -> None:
+        try:
+            ready_line.append(proc.stdout.readline())
+        finally:
+            ready_event.set()
+
+    reader = threading.Thread(target=read_ready, daemon=True)
+    reader.start()
+
+    if not ready_event.wait(timeout=30):
+        proc.kill()
+        proc.wait()
+        proc.stdout.close()
+        raise RuntimeError(
+            "Model inspector did not become ready within 30 seconds."
+        )
+
+    if not ready_line or ready_line[0].strip() != b"READY":
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait()
+        proc.stdout.close()
+        raise RuntimeError("Model inspector failed to initialize.")
+
+    proc.stdout.close()
+    proc.stdout = None
+
+    return proc
+
 
 class InspectorPool:
-    """Keeps inspector processes started ahead of time (TEST-04, NFR-02).
-
-    Starting Python and importing scikit-learn takes about 1.5 s, almost all of the time before the
-    ``202``. Spares that have already done that are handed to the next requests, and a replacement is
-    started straight away. Every model is still inspected in its own fresh process, used once, so the
-    isolation is the same as starting one per request. Spares that are idle when the server exits see
-    their stdin close and exit. With ``size`` spares, requests up to about ``size`` per 1.5 s get one
-    that is ready; faster bursts wait for the import, as before.
-    """
+    """Keeps initialized, one-use inspector processes ready for submissions."""
 
     def __init__(self, start=None, size: int = 2):
         self._start = start
         self._size = size
         self._spares: list[subprocess.Popen] = []
+        self._starting = 0
         self._lock = threading.Lock()
+        self._condition = threading.Condition(self._lock)
 
     def _new(self) -> subprocess.Popen:
         return (self._start or _start_inspector)()
 
     def _top_up(self) -> None:
-        self._spares = [p for p in self._spares if p.poll() is None]
-        while len(self._spares) < self._size:
-            self._spares.append(self._new())
+        """Start missing inspectors without holding the pool lock."""
+        while True:
+            with self._condition:
+                self._spares = [
+                    process
+                    for process in self._spares
+                    if process.poll() is None
+                ]
+
+                if len(self._spares) + self._starting >= self._size:
+                    return
+
+                self._starting += 1
+
+            try:
+                process = self._new()
+            except Exception:
+                with self._condition:
+                    self._starting -= 1
+                    self._condition.notify_all()
+                raise
+
+            with self._condition:
+                self._starting -= 1
+
+                if process.poll() is None:
+                    self._spares.append(process)
+                else:
+                    logger.warning(
+                        "A newly started inspector exited before becoming available."
+                    )
+                    self._condition.notify_all()
+                    return
+
+                self._condition.notify_all()
 
     def take(self) -> subprocess.Popen:
-        """An inspector for one model: the oldest live spare, otherwise a new process.
+        """Take a ready inspector, waiting for an existing replacement if necessary."""
+        while True:
+            start_sync = False
 
-        The replacement is started by ``replenish()`` once this check has finished, not now: a new
-        process importing scikit-learn competes for the CPU with the check that is under way.
-        """
-        with self._lock:
-            alive = [p for p in self._spares if p.poll() is None]
-            process = alive.pop(0) if alive else self._new()
-            self._spares = alive
-            return process
+            with self._condition:
+                self._spares = [
+                    process
+                    for process in self._spares
+                    if process.poll() is None
+                ]
+
+                if self._spares:
+                    process = self._spares.pop(0)
+                    break
+
+                if self._size <= 0:
+                    start_sync = True
+                elif self._starting > 0:
+                    self._condition.wait()
+                    continue
+                else:
+                    self._starting += 1
+                    start_sync = True
+
+            if start_sync:
+                try:
+                    process = self._new()
+                finally:
+                    with self._condition:
+                        self._starting -= 1
+                        self._condition.notify_all()
+
+                break
+
+        return process
+
+    def _replenish(self) -> None:
+        try:
+            self._top_up()
+        except Exception:
+            logger.exception(
+                "Could not replenish the model inspector pool."
+            )
 
     def replenish(self) -> None:
-        """Start replacements for the spares that have been used."""
-        with self._lock:
-            self._top_up()
+        """Synchronously replenish the pool."""
+        self._replenish()
+
+    def replenish_async(self) -> None:
+        """Replenish the pool in a background thread."""
+        threading.Thread(
+            target=self._replenish,
+            daemon=True,
+        ).start()
 
     def resize(self, size: int) -> None:
-        self._size = max(size, 0)
+        with self._condition:
+            self._size = max(size, 0)
+            self._condition.notify_all()
 
     def warm(self) -> None:
-        """Start the spares now, so the first requests do not wait for them."""
-        with self._lock:
-            self._top_up()
+        """Initialize the initial pool before accepting requests."""
+        self._top_up()
 
     def close(self) -> None:
-        with self._lock:
+        with self._condition:
             spares, self._spares = self._spares, []
+
         for process in spares:
             if process.poll() is None:
                 process.kill()
@@ -104,41 +208,48 @@ def _extension(filename: str) -> str:
     return PurePosixPath(filename.replace("\\", "/")).suffix.lower()
 
 
-def _enforce_file_size(file: BinaryIO, max_bytes: int, field_name: str) -> None:
-    """Consume up to ``max_bytes + 1`` bytes and reject immediately if oversized.
-
-    Stops reading as soon as the cumulative count exceeds ``max_bytes`` so
-    unbounded uploads are never read in full. Preserves stream position
-    (seek 0) upon success or failure.
-    """
+def _enforce_file_size(
+    file: BinaryIO,
+    max_bytes: int,
+    field_name: str,
+) -> None:
+    """Read at most max_bytes + 1 bytes and preserve the stream position."""
     total = 0
     chunk_size = 64 * 1024
     file.seek(0)
+
     try:
         while True:
             chunk = file.read(chunk_size)
             if not chunk:
                 break
+
             total += len(chunk)
             if total > max_bytes:
                 raise AppError(
                     ErrorCode.FILE_TOO_LARGE,
-                    f"The {field_name} file exceeds the maximum allowed size of {max_bytes} bytes.",
+                    f"The {field_name} file exceeds the maximum allowed size "
+                    f"of {max_bytes} bytes.",
                 )
     finally:
         file.seek(0)
 
 
 def _validate_dataset_content(file: BinaryIO) -> list[str]:
-    """Validate that the dataset is a non-empty, parseable, non-ragged CSV with a header (US-07)."""
+    """Validate a non-empty, parseable, non-ragged CSV dataset."""
     file.seek(0)
+
     try:
         content = file.read()
+
         if not content or not content.strip():
-            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is empty.")
+            raise AppError(
+                ErrorCode.MALFORMED_DATASET,
+                "The dataset file is empty.",
+            )
 
         try:
-            text = content.decode("utf-8-sig")  # tolerates the byte-order mark Excel writes
+            text = content.decode("utf-8-sig")
         except UnicodeDecodeError:
             raise AppError(
                 ErrorCode.MALFORMED_DATASET,
@@ -146,74 +257,104 @@ def _validate_dataset_content(file: BinaryIO) -> list[str]:
             ) from None
 
         if "\x00" in text:
-            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file contains null bytes.")
+            raise AppError(
+                ErrorCode.MALFORMED_DATASET,
+                "The dataset file contains null bytes.",
+            )
 
         reader = csv.reader(io.StringIO(text))
+
         try:
             header = next(reader, None)
         except csv.Error:
-            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is malformed.") from None
+            raise AppError(
+                ErrorCode.MALFORMED_DATASET,
+                "The dataset file is malformed.",
+            ) from None
 
         if not header:
-            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is missing a header row.")
+            raise AppError(
+                ErrorCode.MALFORMED_DATASET,
+                "The dataset file is missing a header row.",
+            )
+
         if len(header) == 1:
             separators = ((";", "semicolons"), ("\t", "tabs"))
-            separator = next((name for sep, name in separators if sep in header[0]), None)
+            separator = next(
+                (name for sep, name in separators if sep in header[0]),
+                None,
+            )
+
             if separator:
                 raise AppError(
                     ErrorCode.MALFORMED_DATASET,
-                    f"The dataset must be comma-separated, but this file uses {separator}. "
-                    "Save it again as a comma-separated CSV.",
+                    f"The dataset must be comma-separated, but this file "
+                    f"uses {separator}. Save it again as a comma-separated CSV.",
                 )
 
         header_len = len(header)
+
         try:
             for row in reader:
                 if not row:
                     continue
+
                 if len(row) != header_len:
                     raise AppError(
                         ErrorCode.MALFORMED_DATASET,
-                        "The dataset file contains ragged rows with inconsistent column counts.",
+                        "The dataset file contains ragged rows with "
+                        "inconsistent column counts.",
                     )
         except csv.Error:
-            raise AppError(ErrorCode.MALFORMED_DATASET, "The dataset file is malformed.") from None
+            raise AppError(
+                ErrorCode.MALFORMED_DATASET,
+                "The dataset file is malformed.",
+            ) from None
+
         return header
+
     finally:
         file.seek(0)
 
 
-def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
-    """Inspect model in an isolated child process to verify it loads and has a callable predict (US-07).
-
-    Security Notice:
-    Deserializing untrusted pickle/joblib objects executes arbitrary bytecode.
-    This validation runs in a separate child process with a timeout and sanitized
-    environment to isolate the web server from memory corruption, hangs, or interpreter crashes.
-    LIMITATION: This is process isolation, not an unprivileged container sandbox.
-    """
+def _validate_model_content(
+    file: BinaryIO,
+    settings: Settings,
+) -> None:
+    """Inspect an uploaded model in a fresh isolated child process."""
     file.seek(0)
+
     try:
         proc = INSPECTORS.take()
+
+        # Begin replacement startup immediately after consuming a spare.
+        INSPECTORS.replenish_async()
 
         try:
             try:
                 chunk_size = 64 * 1024
                 total_written = 0
+
                 while True:
                     chunk = file.read(chunk_size)
                     if not chunk:
                         break
+
                     total_written += len(chunk)
+
                     if total_written > settings.max_upload_bytes:
                         raise AppError(
                             ErrorCode.FILE_TOO_LARGE,
-                            f"The model file exceeds the limit of {settings.max_upload_bytes} bytes.",
+                            f"The model file exceeds the limit of "
+                            f"{settings.max_upload_bytes} bytes.",
                         )
+
                     proc.stdin.write(chunk)
+
                 proc.stdin.close()
+
             except (BrokenPipeError, OSError):
-                # Child process exited early (e.g. invalid header, corrupted file, or crash)
+                # The child may have exited early due to invalid or corrupted input.
                 pass
 
             try:
@@ -223,11 +364,11 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
                     ErrorCode.INVALID_MODEL,
                     "The model file could not be loaded or is corrupted.",
                 ) from None
+
         finally:
             if proc.poll() is None:
                 proc.kill()
                 proc.wait()
-            INSPECTORS.replenish()
 
         if returncode == 1:
             raise AppError(
@@ -244,6 +385,7 @@ def _validate_model_content(file: BinaryIO, settings: Settings) -> None:
                 ErrorCode.INVALID_MODEL,
                 "The model file could not be loaded or is corrupted.",
             )
+
     finally:
         file.seek(0)
 
@@ -258,7 +400,7 @@ def validate_submission(
     model_file: BinaryIO | None = None,
     dataset_file: BinaryIO | None = None,
 ) -> None:
-    """Raise an ``AppError`` (Architecture section 11) if the submission must be rejected."""
+    """Raise an AppError if the submission must be rejected."""
     missing = [
         name
         for name, value in (
@@ -269,36 +411,59 @@ def validate_submission(
         )
         if not value or not value.strip()
     ]
+
     if missing:
-        raise AppError(ErrorCode.MISSING_REQUIRED_FIELD, f"Missing required field(s): {', '.join(missing)}.")
+        raise AppError(
+            ErrorCode.MISSING_REQUIRED_FIELD,
+            f"Missing required field(s): {', '.join(missing)}.",
+        )
 
     if _extension(model_filename) not in settings.allowed_model_extensions:
         raise AppError(
             ErrorCode.UNSUPPORTED_FILE_TYPE,
-            f"The model must be one of: {', '.join(settings.allowed_model_extensions)}.",
+            f"The model must be one of: "
+            f"{', '.join(settings.allowed_model_extensions)}.",
         )
+
     if _extension(dataset_filename) not in settings.allowed_dataset_extensions:
         raise AppError(
             ErrorCode.UNSUPPORTED_FILE_TYPE,
-            f"The dataset must be one of: {', '.join(settings.allowed_dataset_extensions)}.",
+            f"The dataset must be one of: "
+            f"{', '.join(settings.allowed_dataset_extensions)}.",
         )
+
     if task_type not in TASK_TYPES:
-        raise AppError(ErrorCode.INVALID_TASK_TYPE, f"The task type must be one of: {', '.join(TASK_TYPES)}.")
+        raise AppError(
+            ErrorCode.INVALID_TASK_TYPE,
+            f"The task type must be one of: {', '.join(TASK_TYPES)}.",
+        )
 
     if model_file is not None:
-        _enforce_file_size(model_file, settings.max_upload_bytes, "model")
+        _enforce_file_size(
+            model_file,
+            settings.max_upload_bytes,
+            "model",
+        )
         _validate_model_content(model_file, settings)
+
     if dataset_file is not None:
-        _enforce_file_size(dataset_file, settings.max_upload_bytes, "dataset")
+        _enforce_file_size(
+            dataset_file,
+            settings.max_upload_bytes,
+            "dataset",
+        )
         header = _validate_dataset_content(dataset_file)
-        # Compared without surrounding spaces, so "a, b, c" headers work (the evaluation does the same).
-        if target_column.strip() not in [name.strip() for name in header]:
+
+        if target_column.strip() not in [
+            name.strip() for name in header
+        ]:
             raise AppError(
                 ErrorCode.INVALID_TARGET_COLUMN,
-                f"The selected target column '{target_column}' does not exist in the dataset.",
+                f"The selected target column '{target_column}' "
+                "does not exist in the dataset.",
             )
 
 
 def file_extension(filename: str) -> str:
-    """Lower-case extension of a client-supplied filename (only used after validation)."""
+    """Return the lower-case extension of a client-supplied filename."""
     return _extension(filename)
