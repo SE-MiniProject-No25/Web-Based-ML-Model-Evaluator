@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import {
   ApiError,
@@ -41,6 +41,9 @@ function App() {
   const [resultTaskType, setResultTaskType] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
+
+  const modelInputRef = useRef(null);
+  const datasetInputRef = useRef(null);
 
   const isEvaluating =
     evaluationStatus === "pending" || evaluationStatus === "running";
@@ -124,6 +127,33 @@ function App() {
     setResultTaskType("");
     setCurrentStep(1);
     setFurthestStep(1);
+  }
+
+  function startNewEvaluation() {
+    resetEvaluation();
+
+    setModelFile(null);
+    setDatasetFile(null);
+    setColumns([]);
+    setTaskType("");
+    setTargetColumn("");
+
+    setError("");
+    setFieldErrors({});
+    setRetryable(false);
+    setEvaluationError("");
+    setIsDownloading(false);
+    setDownloadError("");
+
+    setPollAttempt((attempt) => attempt + 1);
+
+    if (modelInputRef.current) {
+      modelInputRef.current.value = "";
+    }
+
+    if (datasetInputRef.current) {
+      datasetInputRef.current.value = "";
+    }
   }
 
   function handleDatasetChange(event) {
@@ -482,6 +512,7 @@ async function handleDownload() {
                 </span>
 
                 <input
+                  ref={modelInputRef}
                   type="file"
                   accept=".pkl,.joblib"
                   onChange={handleModelChange}
@@ -511,6 +542,7 @@ async function handleDownload() {
                 </span>
 
                 <input
+                  ref={datasetInputRef}
                   type="file"
                   accept=".csv,text/csv"
                   onChange={handleDatasetChange}
@@ -942,7 +974,7 @@ async function handleDownload() {
 
               <button
                 type="button"
-                onClick={resetEvaluation}
+                onClick={startNewEvaluation}
                 disabled={isEvaluating}
               >
                 New evaluation
