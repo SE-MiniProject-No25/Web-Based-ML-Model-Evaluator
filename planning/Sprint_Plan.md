@@ -73,15 +73,15 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 
 ### 2a. What actually happened, and Sprint 3
 
-> The plan above is the plan as made on 7 Oct. Both sprints overran; the differences are deviations P-01 and P-02 in the [Deviation Log](../docs/Deviation_Log.md#2-process-deviations).
+> The plan above is the plan as made on 7 Oct: the team planned to start early, ahead of the course's sprint windows. Both sprints overran; the differences are deviations P-01 and P-02 in the [Deviation Log](../docs/Deviation_Log.md#2-process-deviations).
 
-| Sprint | Planned | Points planned | When the points were merged |
-|---|---|---|---|
-| Sprint 1 | 7–13 Oct | 43 | 26 on 14 Oct, a day late (EN-01, EN-04, EN-05, EN-06, US-01, US-02, US-06, US-07, US-08); EN-02 and US-19 (6) on 22 Oct; US-20 and US-12 to US-14 (11) on 28 Oct (#45) |
-| Sprint 2 | 14–20 Oct | 36 | None by 20 Oct; all 36 on 3–10 Nov (#48–#62) |
-| **Sprint 3** | **3–11 Nov** | Sprint 2's 36 points + Part 3 | 36 + the Part-3 work below |
+| Sprint | Course window | Team's plan (7 Oct) | Points planned | When the points were merged | Completed |
+|---|---|---|---|---|---|
+| Sprint 1 | 19–23 Oct | 7–13 Oct | 43 | 26 on 14 Oct (EN-01, EN-04, EN-05, EN-06, US-01, US-02, US-06, US-07, US-08); EN-02 and US-19 (6) on 22 Oct; US-20 and US-12 to US-14 (11) on 28 Oct (#45) | **28 Oct**, 5 days after the course window |
+| Sprint 2 | 26–30 Oct | 14–20 Oct | 36 | All 36 on 3–10 Nov (#48–#62) | **10 Nov**, 11 days after the course window |
+| **Sprint 3** | **1–6 Nov** | (not planned) | Sprint 2's 36 points + Part 3 | 36 + the Part-3 work below, 3–11 Nov | **11 Nov** (freeze), 5 days after the course window |
 
-**Why a third sprint.** By the planned end of Sprint 2 (20 Oct) only 26 of the 79 points were merged. The one-week estimates did not allow for integration, and a Windows-only bug (every valid model rejected, #44) held up the metrics and frontend work until 28 Oct. The rest of Sprint 1 was finished by 28 Oct. The Part-3 brief allows an optional Sprint 3 for spill-over, run in parallel with testing, so Sprint 2's 36 points and the Part-3 testing and debugging became Sprint 3.
+**Why a third sprint.** By the end of the team's own Sprint 2 (20 Oct) only 26 of the 79 points were merged, and by the end of the course's Sprint 2 window (30 Oct) 43. The one-week estimates did not allow for integration, and a Windows-only bug (every valid model rejected, #44) held up the metrics and frontend work until 28 Oct. The rest of Sprint 1 was finished by 28 Oct. The Part-3 brief allows an optional Sprint 3 for spill-over, run in parallel with testing, so Sprint 2's 36 points and the Part-3 testing and debugging became Sprint 3.
 
 **Sprint 3: Wed 3 Nov to Wed 11 Nov 2026.** Goal: finish the spill-over, test everything against the Test Plan, fix what testing finds, and freeze.
 

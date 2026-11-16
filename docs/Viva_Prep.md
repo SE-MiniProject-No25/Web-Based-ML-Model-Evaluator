@@ -9,7 +9,7 @@ Open your pull requests on GitHub before the viva and be ready to walk through o
 
 | Member | Role | Backlog items | Pull requests | Main files |
 |---|---|---|---|---|
-| **Adyanth** (@Adyanth-212) | Team lead, backend | EN-01, EN-03–EN-08, US-01–US-05; Sprint 3: TEST-01, 03, 04, 05, 06, 07, 10, 11, DOC-01–06 | #31–#36, #44, #45, #47–#50, #52–#54, #60, #63, #66, #85–#93 | `backend/app/api/evaluations.py`, `app/evaluation/` (runner, worker), `app/results/`, `app/validation/service.py` (spare inspectors), `app/api/retention.py`, `app/security/memory_limit.py`, `tests/test_architecture.py`, `.github/workflows/ci.yml`, `scripts/generate_reports.py`, `frontend/src/test/`, `e2e/` |
+| **Adyanth** (@Adyanth-212) | Team lead, backend | EN-01, EN-03–EN-08, US-01–US-05; Sprint 3: TEST-01, 03, 04, 05, 06, 07, 10, 11, DOC-01–06 | #31–#36, #44, #45, #47–#50, #52–#54, #60, #63, #66, #85–#96 | `backend/app/api/evaluations.py`, `app/evaluation/` (runner, worker), `app/results/`, `app/validation/service.py` (spare inspectors), `app/api/retention.py`, `app/security/memory_limit.py`, `tests/test_architecture.py`, `.github/workflows/ci.yml`, `scripts/generate_reports.py`, `frontend/src/test/`, `e2e/` |
 | **Akash MP** (@Akash-MP19) | Validation and security | US-06, US-07, US-08, US-09, US-10, US-11 (issues US-23–US-28, #25–#30) | #38, #39, #40, #56, #57, #58 | `backend/app/validation/service.py` (file type, size, CSV and model checks), `app/validation/model_inspector.py`, `app/api/error_handlers.py`, `app/storage/` (temporary storage, retention), `app/api/auth.py`, `tests/test_api_submit.py`, `test_storage.py`, `test_auth.py`, `test_errors.py` |
 | **Akshath Patil** (@akshathpatil353-oss) | Frontend | US-12–US-18 | #59, #61, #62, #65 (and the UI that #45 and #47 connected) | `frontend/src/App.jsx`, `App.css`, `api.js` (error handling, download), `mockAPI.js` |
 | **Akshya Sivagami** (@Akshya-Sivagami) | Metrics and QA | EN-02, US-19, US-20, US-21, US-22; Deliverable 1 documents | #41, #42, #43, #46, #51, #55 | `backend/app/metrics/service.py`, `tests/test_metrics_service.py`, `tests/fixtures/` and `generate_fixtures.py`, `tests/test_determinism.py`, `deliverable-1/` (SRS, Test Plan, SAD, UML), usability report, Sprint 1 video |
@@ -20,18 +20,18 @@ Open your pull requests on GitHub before the viva and be ready to walk through o
 
 **Sprints planned against delivered** ([Sprint Plan](../planning/Sprint_Plan.md) §2a):
 
-| Sprint | Dates | Planned | Delivered |
-|---|---|---|---|
-| 1 | 7–13 Oct | 43 points | 26 merged 14 Oct (one day late); the other 17 by 28 Oct |
-| 2 | 14–20 Oct | 36 points | none by 20 Oct; all 36 on 3–10 Nov |
-| 3 (spill-over) | 3–11 Nov | Sprint 2's 36 + Part-3 testing | all, plus 11 testing and debugging items; frozen at `v1.0` |
+| Sprint | Course window | Team's plan | Planned | Delivered | Completed |
+|---|---|---|---|---|---|
+| 1 | 19–23 Oct | 7–13 Oct | 43 points | 26 merged 14 Oct; the other 17 by 28 Oct | 28 Oct |
+| 2 | 26–30 Oct | 14–20 Oct | 36 points | all 36 on 3–10 Nov | 10 Nov |
+| 3 (spill-over) | 1–6 Nov | not planned | Sprint 2's 36 + Part-3 testing | all, plus 11 testing and debugging items | 11 Nov (frozen at `v1.0`) |
 
 **Blockages and how they were resolved:**
 - **A Windows-only bug** (#44): every valid model was rejected on Windows, because the validation child process could not import joblib with the stripped environment. CI ran on Linux only, so it passed there. Fixed by giving the child the server's `sys.path`. Prevented since by running CI on Windows too (#88).
 - **Two frontends built in parallel** (#45, #46): the frontend developer built against the mock API while the team lead wired the real API. They were combined in #47.
 - **Stacked pull requests and merge conflicts:** dependent pull requests (for example #57/#58 on storage and auth) conflicted. They were resolved on their branches and merged bottom-up; branches are deleted on merge so the stack retargets itself.
 - **Large file in git:** the Sprint 1 video is 67 MB. The Sprint 2 video was recorded at 7 MB, and models and media are marked binary (#87).
-- **Overrun:** 26 of 79 points by the planned end, so a Sprint 3 was declared, as the Part-3 brief allows (Deviation Log P-01, P-02).
+- **Overrun:** the team planned to start early (7 Oct) but had only 26 of 79 points by its own planned end (20 Oct) and 43 by the end of the course's Sprint 2 window (30 Oct), so a Sprint 3 was declared, as the Part-3 brief allows (Deviation Log P-01, P-02).
 
 **Process rules:** a branch per issue, a pull request that closes the issue, CI on every pull request, and a Definition of Done (Sprint Plan §4). Where reality differed (reviews), it is in the Deviation Log (P-04).
 
