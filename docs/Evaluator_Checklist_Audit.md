@@ -45,7 +45,7 @@ Checked on 11 Nov 2026, at the development freeze (tag `v1.0`).
 | Backlog items created from the SRS FRs and NFRs | ✅ | [Product Backlog](../planning/Product_Backlog.md) §2 maps every FR, NFR and test case to a backlog item; issues #1–#30 | Adyanth |
 | Story points on all backlog items | ✅ | Product Backlog §1: every item has points (79 in total) | Adyanth |
 | User stories assigned to individual members | ✅ | Product Backlog "Owner" column; every issue has an assignee | Adyanth |
-| Sprint 1 and Sprint 2 planned on the board | ✅ | Milestones *Sprint 1* and *Sprint 2*; [Sprint Plan](../planning/Sprint_Plan.md) §2. Sprint 3 added for the spill-over (§2a) | Adyanth |
+| Sprint 1 and Sprint 2 planned on the board | ✅ | Milestones *Sprint 1* (15 issues) and *Sprint 2* (15 issues); [Sprint Plan](../planning/Sprint_Plan.md) §2. *Sprint 3* (15 issues) added for the spill-over and Part-3 testing (§2a) | Adyanth |
 
 ### Sprint 1
 
@@ -55,7 +55,7 @@ Checked on 11 Nov 2026, at the development freeze (tag `v1.0`).
 | Code implemented with approved methods, matching SRS/SAD | ✅ | Matches the SAD components and API (README "Code Map"; `test_architecture.py` enforces the boundaries). Differences are in the [Deviation Log](Deviation_Log.md) | Everyone |
 | Pull requests raised by the assigned member | ✅ | Akash: #38–#40, #56–#58; Akshya: #41–#43, #46, #51, #55; Akshath: #59, #61, #62, #65; Adyanth: the rest. See [Viva Prep](Viva_Prep.md) §1 | Everyone |
 | Pull requests formally reviewed and merged by the repository owner | ⚠️ | All were merged by the team lead; formal GitHub reviews only on #34, #35, #42, #44. Recorded as deviation [P-04](Deviation_Log.md#2-process-deviations). Branch protection with a required review is on after the freeze | Adyanth |
-| 1-minute Sprint 1 video in the repository | ✅ | [`deliverable-1/Sprint1_Demo.mp4`](../deliverable-1/Sprint1_Demo.mp4) | Akshya |
+| 1-minute Sprint 1 video in the repository | ✅ | [`deliverable-1/Sprint1_Demo.mp4`](../deliverable-1/Sprint1_Demo.mp4) (1:18) | Akshya |
 
 ### Sprint 2
 

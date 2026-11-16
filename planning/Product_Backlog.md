@@ -1,7 +1,7 @@
 # Product Backlog
 ## Web-Based ML Model Evaluator
 
-> **Deviations (as built).** Sprint 1 and Sprint 2 overran and a Sprint 3 (3–11 Nov) finished the spill-over and the Part-3 testing ([Deviation Log P-01, P-02](../docs/Deviation_Log.md#2-process-deviations); [Sprint Plan §2a](Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)). US-09, US-10 and US-11 were tracked under the test-story issues US-23 to US-28 (#25–#30) and built in #56–#58 (P-03).
+> **Deviations (as built).** Sprint 1 and Sprint 2 overran and a Sprint 3 (window 1–6 Nov, ran to the 11 Nov freeze) finished the spill-over and the Part-3 testing ([Deviation Log P-01, P-02](../docs/Deviation_Log.md#2-process-deviations); [Sprint Plan §2a](Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)). US-09, US-10 and US-11 were tracked under the test-story issues US-23 to US-28 (#25–#30) and built in #56–#58 (P-03).
 
 Every Functional (FR) and Non-Functional (NFR) requirement in the [SRS](../deliverable-1/01_SRS.md) is covered by at least one backlog item below, and every test case in the [Test Plan](../deliverable-1/02_Test_Plan.md) is owned by one. Sprint dates, roles and workflow are in the [Sprint Plan](Sprint_Plan.md).
 
@@ -118,7 +118,7 @@ Estimates are story points (1, 2, 3, 5, 8): relative effort, not hours.
 
 ## 3. Backlog Items
 
-### Sprint 1 (Wed 7 Oct – Tue 13 Oct 2026)
+### Sprint 1 (Mon 19 Oct – Fri 23 Oct 2026)
 
 #### EN-01 — Project skeleton, tech stack and CI
 
@@ -358,7 +358,7 @@ Acceptance criteria:
 
 Requirements: FR-09, FR-11 · Test cases: TC-09 · Depends on: EN-02
 
-### Sprint 2 (Wed 14 Oct – Tue 20 Oct 2026)
+### Sprint 2 (Mon 26 Oct – Fri 30 Oct 2026)
 
 #### EN-03 — Integration, full test run and Test Report
 

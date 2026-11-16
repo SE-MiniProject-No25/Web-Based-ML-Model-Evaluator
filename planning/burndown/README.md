@@ -1,5 +1,7 @@
 # Sprint Burndown
 
+> The chart below was drawn for an earlier draft of Sprint 1 (7–13 Oct). Sprint 1 is now recorded as 19–23 Oct (see the [Sprint Plan](../Sprint_Plan.md)).
+
 ![Sprint 1 burndown for Adyanth-212](sprint-1-adyanth-burndown.svg)
 
 The chart shows **story points remaining** (the Estimate field in the [GitHub Project](https://github.com/orgs/SE-MiniProject-No25/projects/1)) at the end of each day of the sprint, against the ideal straight line to zero. Points only burn down when an issue is **Done**: closed, or its Status set to Done.

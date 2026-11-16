@@ -251,7 +251,7 @@ The detailed API contract is specified in the [Architecture & Design Specificati
 
 ![UML use case diagram](uml/use_case.png)
 
-*Source: `uml/use_case.png`*
+*Source: [`uml/use_case.puml`](uml/use_case.puml) (PlantUML)*
 
 The diagram models the workflow at a finer granularity than the textual use cases above. Each diagram use case maps to them as follows:
 
