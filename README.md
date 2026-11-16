@@ -55,7 +55,7 @@ java -jar plantuml.jar -tpng deliverable-1/uml/component.puml
 
 > **Development is frozen** as of 11 Nov 2026 at tag [`v1.0`](https://github.com/SE-MiniProject-No25/Web-Based-ML-Model-Evaluator/releases/tag/v1.0). After the freeze only bug fixes are merged, each through a reviewed pull request. All documents are indexed in [`docs/README.md`](docs/README.md); differences from the original design are in the [Deviation Log](docs/Deviation_Log.md).
 
-Sprints (course windows): Sprint 1 19–23 Oct, Sprint 2 26–30 Oct, Sprint 3 1–6 Nov 2026. The team planned to start early (7–20 Oct); the sprints overran and were completed on 28 Oct, 10 Nov and 11 Nov (freeze), with Sprint 3 finishing the spill-over and the Part-3 testing ([Sprint Plan §2a](planning/Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)):
+Sprints: Sprint 1 19–23 Oct, Sprint 2 26–30 Oct, Sprint 3 1–6 Nov 2026. The sprints overran and were completed on 28 Oct, 10 Nov and 11 Nov (freeze), with Sprint 3 finishing the spill-over and the Part-3 testing ([Sprint Plan §2a](planning/Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)):
 
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.

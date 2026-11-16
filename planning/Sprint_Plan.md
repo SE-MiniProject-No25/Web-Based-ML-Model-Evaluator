@@ -1,7 +1,7 @@
 # Sprint Plan
 ## Web-Based ML Model Evaluator
 
-Two one-week sprints take the Deliverable 1 design to a working, tested application by **Tuesday 20 October 2026**. The user stories, acceptance criteria and requirement coverage are in the [Product Backlog](Product_Backlog.md).
+Sprint 1 (**Mon 19 – Fri 23 Oct 2026**) and Sprint 2 (**Mon 26 – Fri 30 Oct 2026**) take the Deliverable 1 design to a working, tested application; an optional Sprint 3 (**Sun 1 – Fri 6 Nov 2026**) covers spill-over and testing. The user stories, acceptance criteria and requirement coverage are in the [Product Backlog](Product_Backlog.md).
 
 ---
 
@@ -45,7 +45,7 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 
 ## 2. Sprints
 
-### Sprint 1 — Wed 7 Oct to Tue 13 Oct 2026 (43 points)
+### Sprint 1 — Mon 19 Oct to Fri 23 Oct 2026 (43 points)
 
 **Goal:** a walking skeleton. A valid classification or regression evaluation works end to end — upload → validate → run → status → metrics on screen — and unsupported, oversized or malformed files are rejected.
 
@@ -58,7 +58,7 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 | US-02 Status/results (3) | | | |
 | EN-04 Component-separation check (1) | | | |
 
-### Sprint 2 — Wed 14 Oct to Tue 20 Oct 2026 (36 points)
+### Sprint 2 — Mon 26 Oct to Fri 30 Oct 2026 (36 points)
 
 **Goal:** complete and hardened. Download, failure handling, safe errors, secure storage, optional authentication, every NFR checked, and all 25 test cases executed and reported.
 
@@ -73,17 +73,17 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 
 ### 2a. What actually happened, and Sprint 3
 
-> The plan above is the plan as made on 7 Oct: the team planned to start early, ahead of the course's sprint windows. Both sprints overran; the differences are deviations P-01 and P-02 in the [Deviation Log](../docs/Deviation_Log.md#2-process-deviations).
+> Both sprints overran; the differences are deviations P-01 and P-02 in the [Deviation Log](../docs/Deviation_Log.md#2-process-deviations). The team began work before Sprint 1's window opened: the first 26 points were merged on 14 Oct. The day-by-day schedule in §3 is the earlier draft, kept as written.
 
-| Sprint | Course window | Team's plan (7 Oct) | Points planned | When the points were merged | Completed |
-|---|---|---|---|---|---|
-| Sprint 1 | 19–23 Oct | 7–13 Oct | 43 | 26 on 14 Oct (EN-01, EN-04, EN-05, EN-06, US-01, US-02, US-06, US-07, US-08); EN-02 and US-19 (6) on 22 Oct; US-20 and US-12 to US-14 (11) on 28 Oct (#45) | **28 Oct**, 5 days after the course window |
-| Sprint 2 | 26–30 Oct | 14–20 Oct | 36 | All 36 on 3–10 Nov (#48–#62) | **10 Nov**, 11 days after the course window |
-| **Sprint 3** | **1–6 Nov** | (not planned) | Sprint 2's 36 points + Part 3 | 36 + the Part-3 work below, 3–11 Nov | **11 Nov** (freeze), 5 days after the course window |
+| Sprint | Dates | Points planned | When the points were merged | Completed |
+|---|---|---|---|---|
+| Sprint 1 | 19–23 Oct | 43 | 26 on 14 Oct (EN-01, EN-04, EN-05, EN-06, US-01, US-02, US-06, US-07, US-08); EN-02 and US-19 (6) on 22 Oct; US-20 and US-12 to US-14 (11) on 28 Oct (#45) | **28 Oct**, 5 days after the sprint ended |
+| Sprint 2 | 26–30 Oct | 36 | All 36 on 3–10 Nov (#48–#62) | **10 Nov**, 11 days after the sprint ended |
+| **Sprint 3** | **1–6 Nov** | Sprint 2's 36 points + Part 3 | 36 + the Part-3 work below, 3–11 Nov | **11 Nov** (freeze), 5 days after the sprint ended |
 
-**Why a third sprint.** By the end of the team's own Sprint 2 (20 Oct) only 26 of the 79 points were merged, and by the end of the course's Sprint 2 window (30 Oct) 43. The one-week estimates did not allow for integration, and a Windows-only bug (every valid model rejected, #44) held up the metrics and frontend work until 28 Oct. The rest of Sprint 1 was finished by 28 Oct. The Part-3 brief allows an optional Sprint 3 for spill-over, run in parallel with testing, so Sprint 2's 36 points and the Part-3 testing and debugging became Sprint 3.
+**Why a third sprint.** By the end of Sprint 2 (30 Oct) only 43 of the 79 points were merged. The estimates did not allow for integration, and a Windows-only bug (every valid model rejected, #44) held up the metrics and frontend work until 28 Oct. The rest of Sprint 1 was finished by 28 Oct. The Part-3 brief allows an optional Sprint 3 for spill-over, run in parallel with testing, so Sprint 2's 36 points and the Part-3 testing and debugging became Sprint 3.
 
-**Sprint 3: Wed 3 Nov to Wed 11 Nov 2026.** Goal: finish the spill-over, test everything against the Test Plan, fix what testing finds, and freeze.
+**Sprint 3: Sun 1 Nov to Fri 6 Nov 2026** (the work ran from Tue 3 Nov to the freeze on Wed 11 Nov). Goal: finish the spill-over, test everything against the Test Plan, fix what testing finds, and freeze.
 
 | Work | Items |
 |---|---|
@@ -104,7 +104,9 @@ On GitHub, the Sprint 2 stories stay in the **Sprint 2** milestone, where they w
 
 ---
 
-## 3. Calendar
+## 3. Calendar (earlier draft, 7–20 Oct)
+
+The day-by-day schedule as first drafted on 7 Oct. The sprint dates were then set to the windows in §2 (19–23 Oct, 26–30 Oct, 1–6 Nov); this schedule is kept as written.
 
 | Date | What happens |
 |---|---|
@@ -179,6 +181,6 @@ EN-01, EN-02 and EN-05 unblock everyone, so they are due on **Thu 8 Oct**. Until
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Frontend blocked waiting for the backend | UI slips into Sprint 2 | Build against a mock of Architecture §10 from day 1. |
-| Integration problems found late | Broken demo | Fixed integration day (Mon 12 Oct) and feature freeze (Sun 18 Oct). |
+| Integration problems found late | Broken demo | A fixed integration day and a feature freeze before the end of Sprint 2 (§3). |
 | Untrusted model files execute code on load | Security requirement not met | Isolated, time-limited process for loading and execution; documented limitation. |
 | Someone is unavailable for a few days | Items stall | Stand-up blockers are raised the same day; the Team Lead reassigns. |
