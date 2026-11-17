@@ -1,7 +1,20 @@
 # Software Test Plan
 ## Web-Based ML Model Evaluator
 
-> **Deviations (as built).** The test cases in section 8 were updated to match what was built (Part 3). Changes that affect testing are in the [Deviation Log](../docs/Deviation_Log.md): TC-15 memory limit on all three systems ([D-07](../docs/Deviation_Log.md#1-design-deviations)), TC-18 retention on a timer (D-06), TC-19 acknowledgement time with spare inspectors (D-11), and the interface halves of TC-01, TC-02 and TC-07 automated in the browser (D-16).
+> **Deviations (as built).** The test cases in section 8 were updated to match what was built (Part 3). The [Revision History](#revision-history) lists each revision, [section 10](#10-test-execution-record) records the result of every case, and the testing changes T-01 to T-12 are in the [Deviation Log](../docs/Deviation_Log.md#2a-testing-deviations-t). Other changes that affect testing: TC-15 memory limit on Linux and Windows ([D-07](../docs/Deviation_Log.md#1-design-deviations)), TC-18 retention on a timer (D-06), TC-19 acknowledgement time with spare inspectors (D-11), and the interface halves of TC-01, TC-02 and TC-07 automated in the browser (D-16).
+
+## Revision History
+
+| Rev | Date | Author | What changed | Commits |
+|---|---|---|---|---|
+| 1.0 | 26 Sep 2026 | Akshya | First version: 22 test cases for the functional, non-functional and security requirements | `0d9a260` (renamed to `.md` in `4abe8a3`) |
+| 1.1 | 27 Sep 2026 | Adyanth | Review for Deliverable 1: 25 cases (TC-23 to TC-25 added); the Requirement(s) column aligned with the traceability matrix; a Test Data column added; TC-04, TC-08, TC-09 and TC-16 corrected (T-01 to T-03) | `13a9944`, `92128b9` |
+| 1.2 | 3 Nov 2026 | Adyanth | Results of the first test run linked; the NFR-09 row records the automated architecture check | `79ce181` |
+| 1.3 | 10 Nov 2026 | Adyanth | Part 3: all 25 cases updated to the application as built (T-04); section 9 (automated test mapping) added; TC-12 now covers the Download Results button (T-05), TC-15 the memory limit on Windows (T-06), TC-17 the authentication mechanism (T-08), TC-18 the retention timer (T-07) | `5df3015`, `9aeda7c`, `106838d`, `03721c7` |
+| 1.4 | 11 Nov 2026 | Adyanth | TC-19 measured one second apart, as one user would (T-09); results linked to the System Validation Report | `4e1590d`, `9f5ecf4` |
+| 1.5 | 17 Nov 2026 | Adyanth | Revision history, section 10 (test execution record) and the testing deviations T-01 to T-12 | this revision |
+
+The revision numbers were assigned afterwards from the git history, which is the authoritative record: `git log -p -- deliverable-1/02_Test_Plan.md`. No case was removed. Three were added (rev 1.1) and all 25 were reworded at least once.
 
 
 ## 1. Introduction
@@ -338,3 +351,39 @@ Each case above is covered by the automated tests listed here (generated from `b
 | TC-23 | `test_api_submit.py::test_malformed_csv_is_rejected` |
 | TC-24 | `test_api_status.py::test_unknown_id_is_a_404_with_the_standard_error`<br>`test_api_download.py::test_unknown_id_is_a_404` |
 | TC-25 | `test_api_download.py::test_download_before_completion_is_a_409_with_no_file`<br>`test_api_download.py::test_failed_evaluation_has_nothing_to_download` |
+
+---
+
+## 10. Test Execution Record
+
+The result of every case in section 8, as recorded by the test run of 11 November 2026 (Windows 11, Python 3.13.7, `main` at `253d236b`) and reported in the [System Validation Report](../docs/System_Validation_Report.md), which also has the performance figures, the security validation, the exit criteria and the defect list. The same tests run in CI on Windows and Linux on every push. *Tests* is the number of automated tests that passed out of those mapped to the case in section 9; the browser tests (`e2e/`) cover the interface half of TC-01, TC-02, TC-07, TC-08, TC-09, TC-11 and TC-12. A case passes when its expected result in section 8 was observed (section 4.4).
+
+| Case | Result | Actual result | Tests | Defects found or related |
+|---|---|---|---|---|
+| TC-01 | Pass | The API accepted a `.joblib` classification model with `202`. In the interface the chosen file is listed with its size and the step can continue | 1/1, browser | none |
+| TC-02 | Pass | A valid CSV was accepted; the Configure step lists the columns of the CSV header | 2/2, browser | none |
+| TC-03 | Pass | A `.txt` model was refused with `415 UNSUPPORTED_FILE_TYPE`; nothing was stored and no evaluation was created | 1/1 | none |
+| TC-04 | Pass | A file exactly at the limit was accepted; one byte above it was refused with `413 FILE_TOO_LARGE` and no evaluation was created (model and dataset) | 5/5 | none |
+| TC-05 | Pass | A target column that is not in the CSV was refused with `422 INVALID_TARGET_COLUMN`; evaluation did not start | 2/2 | DEF-12, DEF-13 (closed) |
+| TC-06 | Pass | An invalid task type was refused with `422 INVALID_TASK_TYPE` | 3/3 | none |
+| TC-07 | Pass | Each missing field gave `400 MISSING_REQUIRED_FIELD` naming it; in the interface the Next button stayed disabled | 4/4, browser | none |
+| TC-08 | Pass | The classification reference pair gave accuracy 0.9625, precision 0.9767, recall 0.9545 and F1 0.9655, equal to `expected_metrics.json` | 2/2, browser | DEF-11 (closed) |
+| TC-09 | Pass | The regression reference pair gave MAE 0.2625, MSE 0.1063, RMSE 0.3261 and R² 0.9945, equal to `expected_metrics.json` | 2/2, browser | DEF-17 (closed) |
+| TC-10 | Pass | The status moved `pending`, `running`, `completed` and the result was shown | 2/2 | none |
+| TC-11 | Pass | An incompatible dataset ended `failed` with `INCOMPATIBLE_INPUTS`, and the message names the missing and the unused columns | 3/3, browser | DEF-15, DEF-16 (closed) |
+| TC-12 | Pass | The result downloaded as `evaluation-<id>.json` with the ID, task type, target column, filenames, metrics and timestamps, through the API and through the Download Results button | 2/2, browser | DEF-09 (closed) |
+| TC-13 | Pass | A file named `../../evil.csv` was stored under a random name inside the storage directory; nothing was written outside it | 11/11 | none |
+| TC-14 | Pass | A corrupt model, and files that unpickle to something without `predict`, were refused with `422 INVALID_MODEL` before use | 4/4 | DEF-06 (accepted, see below) |
+| TC-15 | Pass | A model over the time limit ended `failed` with `RESOURCE_LIMIT_EXCEEDED` end to end through the API. The memory limit was proven on Linux (CI) and on Windows (job object) | 4/4 | DEF-04 (closed) |
+| TC-16 | Pass | Validation errors, runtime errors, unknown URLs and unexpected exceptions all returned the standard error body with no trace, secret or server path | 5/5 | DEF-03 (closed) |
+| TC-17 | Pass | Without credentials the three protected endpoints answered `401 UNAUTHENTICATED`; with the key in `X-API-Key` or `Authorization: Bearer` they succeeded; `/api/health` stayed open; enabled with no key configured, every protected request was refused | 7/7 | DEF-01 (closed) |
+| TC-18 | Pass | Expired artifacts were removed at start-up, on a timer and after each submission, without waiting for a request; files of a pending or running evaluation were kept | 7/7 | DEF-02, DEF-10 (closed) |
+| TC-19 | Pass | Ten requests one second apart: slowest 0.165 s to the `202`. Back to back: slowest 1.624 s, mean 0.824 s. The limit is 2 s | 1/1 | DEF-05 (closed) |
+| TC-20 | Pass | Three identical runs gave identical metrics, for classification and for regression | 2/2 | none |
+| TC-21 | Pass (manual) | One person outside the team completed upload, configure, evaluate and result in about two minutes without help. One participant: an indication, not a statistical result | manual, [report](usability-testing/US-22_Usability_Test_Report.md) | DEF-07 (closed) |
+| TC-22 | Pass | Each evaluation had a unique random ID and reached `completed` or `failed`; a terminal status never changed | 5/5 | none |
+| TC-23 | Pass | A malformed CSV was refused with `422 MALFORMED_DATASET` before any model ran | 6/6 | DEF-14 (closed) |
+| TC-24 | Pass | An unknown ID gave `404 EVALUATION_NOT_FOUND` for the status and for the download | 2/2 | none |
+| TC-25 | Pass | A download before completion gave `409 EVALUATION_NOT_COMPLETED` and no file | 3/3 | none |
+
+**Summary.** 25 of 25 cases pass, 24 automated and TC-21 by hand. The automated suite has 341 tests (340 passed, 1 skipped because it only applies on Linux). The defects found while testing are DEF-01 to DEF-17 in the System Validation Report: all closed except DEF-06 (a malicious pickle still runs code with the server's privileges, an accepted and documented limitation of the model format).
