@@ -3,6 +3,20 @@
 
 > **Deviations (as built).** The test cases in section 8 were updated to match what was built (Part 3). The [Revision History](#revision-history) lists each revision, [section 10](#10-test-execution-record) records the result of every case, and the testing changes T-01 to T-12 are in the [Deviation Log](../docs/Deviation_Log.md#2a-testing-deviations-t). Other changes that affect testing: TC-15 memory limit on Linux and Windows ([D-07](../docs/Deviation_Log.md#1-design-deviations)), TC-18 retention on a timer (D-06), TC-19 acknowledgement time with spare inspectors (D-11), and the interface halves of TC-01, TC-02 and TC-07 automated in the browser (D-16).
 
+## Document Control
+
+| | |
+|---|---|
+| **Document** | Software Test Plan |
+| **Test plan identifier** | WBMLE-TP, revision 1.5 |
+| **Project** | Web-Based ML Model Evaluator (Software Engineering mini-project) |
+| **Date** | 17 November 2026 |
+| **Authors** | Akshya Sivagami (first version), Adyanth Mallur (revisions) |
+| **Team** | Adyanth Mallur, Akash MP, Akshath Patil, Akshya Sivagami |
+| **Structure follows** | IEEE Std 829, Software Test Documentation |
+| **Repository path** | `deliverable-1/02_Test_Plan.md` |
+| **References** | [SRS](01_SRS.md) (the requirements tested), [Architecture and Design](03_Architecture_and_Design.md), [System Validation Report](../docs/System_Validation_Report.md), [Unit Test Report](../docs/Unit_Test_Report.md), [Requirement-to-code traceability](../docs/TRACEABILITY.md), [Deviation Log](../docs/Deviation_Log.md) |
+
 ## Revision History
 
 | Rev | Date | Author | What changed | Commits |
@@ -12,7 +26,7 @@
 | 1.2 | 3 Nov 2026 | Adyanth | Results of the first test run linked; the NFR-09 row records the automated architecture check | `79ce181` |
 | 1.3 | 10 Nov 2026 | Adyanth | Part 3: all 25 cases updated to the application as built (T-04); section 9 (automated test mapping) added; TC-12 now covers the Download Results button (T-05), TC-15 the memory limit on Windows (T-06), TC-17 the authentication mechanism (T-08), TC-18 the retention timer (T-07) | `5df3015`, `9aeda7c`, `106838d`, `03721c7` |
 | 1.4 | 11 Nov 2026 | Adyanth | TC-19 measured one second apart, as one user would (T-09); results linked to the System Validation Report | `4e1590d`, `9f5ecf4` |
-| 1.5 | 17 Nov 2026 | Adyanth | Revision history, section 10 (test execution record) and the testing deviations T-01 to T-12 | this revision |
+| 1.5 | 17 Nov 2026 | Adyanth | Document control, revision history, section 10 (test execution record), sections 11 to 14 (responsibilities, schedule, suspension and resumption criteria, test metrics) and the testing deviations T-01 to T-12 | this revision |
 
 The revision numbers were assigned afterwards from the git history, which is the authoritative record: `git log -p -- deliverable-1/02_Test_Plan.md`. No case was removed. Three were added (rev 1.1) and all 25 were reworded at least once.
 
@@ -387,3 +401,57 @@ The result of every case in section 8, as recorded by the test run of 11 Novembe
 | TC-25 | Pass | A download before completion gave `409 EVALUATION_NOT_COMPLETED` and no file | 3/3 | none |
 
 **Summary.** 25 of 25 cases pass, 24 automated and TC-21 by hand. The automated suite has 341 tests (340 passed, 1 skipped because it only applies on Linux). The defects found while testing are DEF-01 to DEF-17 in the System Validation Report: all closed except DEF-06 (a malicious pickle still runs code with the server's privileges, an accepted and documented limitation of the model format).
+
+---
+
+## 11. Responsibilities
+
+Who was responsible for which part of the testing.
+
+| Person | Responsibility | Main cases and evidence |
+|---|---|---|
+| Adyanth (team lead) | Executing the whole plan (EN-03), CI and the coverage thresholds, the generated reports, the lifecycle, download and limits tests, performance (TC-19), the architecture check (NFR-09), the frontend and browser tests, and this plan's revisions | TC-10, TC-11, TC-12, TC-15, TC-19, TC-22, TC-24, TC-25; `test_result_service.py`, `test_api_status.py`, `test_api_download.py`, `test_evaluation_limits.py`, `test_ack_time.py`, `test_architecture.py`, `frontend/src/test/`, `e2e/` |
+| Akash | Security and validation tests: file type and size, malformed inputs, configuration checks, path handling, safe errors, storage cleanup and authentication | TC-03 to TC-07, TC-13, TC-14, TC-16, TC-17, TC-18, TC-23; `test_api_submit.py`, `test_storage.py`, `test_auth.py`, `test_errors.py` |
+| Akshya | This plan (first version), the reference models and datasets (EN-02), the metrics tests, determinism and the usability test | TC-08, TC-09, TC-20, TC-21; `test_metrics_service.py`, `test_reference_fixtures.py`, `test_determinism.py`, [usability report](usability-testing/US-22_Usability_Test_Report.md) |
+| Akshath | Checking the interface while building it, and the usability results for US-18 | The interface half of TC-01, TC-02, TC-07 and TC-12 (automated later by Adyanth in TEST-01 and TEST-07) |
+
+---
+
+## 12. Test Schedule
+
+| Period | Testing activity |
+|---|---|
+| Sprint 1 (planned 19 to 23 Oct, completed 28 Oct) | Reference fixtures (EN-02); tests written with each backend story |
+| Sprint 2 (planned 26 to 30 Oct, completed 10 Nov) | Security, limits and download tests; the first full run of all 25 cases on 3 Nov: 22 passed, 2 failed (TC-17 and TC-18, features not built yet) and 1 was not executed (TC-21) |
+| Sprint 3 (planned 1 to 6 Nov, ran to 11 Nov) | CI on Windows and Linux with coverage thresholds; the retention timer, the Windows memory limit and the faster acknowledgement; exploratory testing (DEF-11 to DEF-17); frontend and browser tests; the final run and the generated reports on 10 and 11 Nov |
+| 11 Nov 2026 | Freeze: all 25 cases pass; the exit criteria of section 4.3 are met |
+
+The dates of the sprints are in the [Sprint Plan](../planning/Sprint_Plan.md).
+
+---
+
+## 13. Suspension and Resumption Criteria
+
+**Testing is suspended** when
+- the application does not start, or CI is red on `main` for a reason unrelated to the case under test;
+- a blocking defect stops the main workflow from running (for example the Windows-only import error that rejected every valid model, fixed in #44);
+- the reference models or datasets are missing or changed, so expected values can no longer be trusted.
+
+**Testing resumes** when the cause is fixed, CI is green on both Linux and Windows, and the cases the fix could affect have been run again.
+
+---
+
+## 14. Test Metrics
+
+Measured in the run of 11 November 2026 and reported in the [System Validation Report](../docs/System_Validation_Report.md), the [Code Coverage Report](../docs/Code_Coverage_Report.md) and the [Branch Coverage Report](../docs/Branch_Coverage_Report.md).
+
+| Metric | Value |
+|---|---|
+| Test cases passed | 25 of 25 (24 automated, TC-21 by hand) |
+| Backend automated tests | 341: 215 unit, 126 system; 340 passed, 1 skipped (it only applies on Linux) |
+| Frontend tests | 28 (Vitest), plus 7 browser tests (Playwright) |
+| Line coverage, backend | 97.6% with all tests; 91.9% with unit tests only (CI minimum 90%) |
+| Branch coverage, backend | 95.3% with all tests; 80.1% with unit tests only (CI minimum 85%) |
+| Acknowledgement time (NFR-02, TC-19) | slowest 0.165 s at one request a second; slowest 1.624 s back to back; limit 2 s |
+| Defects found | 17 (DEF-01 to DEF-17): 4 high, 7 medium, 6 low |
+| Defects closed | 16; DEF-06 (a malicious pickle runs code with the server's privileges) is an accepted limitation |

@@ -4,6 +4,30 @@
 > **Deviations (as built).** The components, the API (section 10) and the error table (section 11) are implemented as specified. The [Deviation Log](../docs/Deviation_Log.md#1-design-deviations) records where the build differs or adds detail: the code layout per component (D-01), the model checked and run in child processes (D-02, D-03, D-07, D-11), three extra error codes outside the workflow (D-04), the optional API key (D-05), retention on a timer (D-06), the in-memory result store (D-08) and the data rules added after testing (D-10, D-12, D-13).
 
 
+## Document Control
+
+| | |
+|---|---|
+| **Document** | Software Architecture & Design Specification (SAD) |
+| **Project** | Web-Based ML Model Evaluator (Software Engineering mini-project) |
+| **Version** | 1.4 (as built) |
+| **Date** | 17 November 2026 |
+| **Authors** | Akshya Sivagami (first version), Adyanth Mallur (revisions) |
+| **Team** | Adyanth Mallur, Akash MP, Akshath Patil, Akshya Sivagami |
+| **Structure follows** | IEEE Std 1016, Software Design Descriptions: Part I architecture, Part II detailed design |
+| **Repository path** | `deliverable-1/03_Architecture_and_Design.md` |
+| **Related documents** | [SRS](01_SRS.md), [Test Plan](02_Test_Plan.md), [Deviation Log](../docs/Deviation_Log.md), [Requirement-to-code traceability](../docs/TRACEABILITY.md) |
+
+## Revision History
+
+| Rev | Date | Author | What changed | Commits |
+|---|---|---|---|---|
+| 1.0 | 26 Sep 2026 | Akshya | First version: layered architecture, components, security architecture, two sequence diagrams, API design and error handling | `0d9a260` (renamed to `.md` in `4abe8a3`) |
+| 1.1 | 27 Sep 2026 | Adyanth | Diagram references fixed and the diagrams embedded; the components the traceability tables cite defined (API Error Handler, Authentication Middleware, Storage Lifecycle Manager); an error status for every case; unguessable evaluation IDs added as a security control; UML modelling errors corrected in three diagrams; the failed-evaluation response specified | `6ac2319`, `92128b9`, `b720624`, `70782c3` |
+| 1.2 | 3 Nov 2026 | Adyanth | API documentation: examples use random UUIDs, the download response specified | `d7d0b15` |
+| 1.3 | 11 Nov 2026 | Adyanth | As-built note linking the Deviation Log; final audit fixes | `ce6f40e`, `9f5ecf4` |
+| 1.4 | 17 Nov 2026 | Adyanth | Document control, this revision history, 6.4 Threat Analysis (STRIDE), 15 Risks and Mitigations and 16 Open Issues | this revision |
+
 # Part I — Architecture Specification
 
 ## 1. Introduction
@@ -130,6 +154,19 @@ The diagram shows the browser, backend/API, validation, security/policy, evaluat
 | SEC-06 | Authentication Middleware |
 | SEC-07 | Storage Lifecycle Manager |
 | SEC-08 | API Controller + Input Validation |
+
+### 6.4 Threat Analysis (STRIDE)
+
+Each category of threat against this system, the controls that answer it, and what remains.
+
+| Threat | Example here | Controls | What remains |
+|---|---|---|---|
+| **S**poofing | A caller pretends to be an authorised user | Optional API key (`X-API-Key` or `Authorization: Bearer`), compared in constant time; unauthenticated requests are refused with `401` and logged; unguessable evaluation IDs | Authentication is off by default and is one shared key, with no user accounts |
+| **T**ampering | A filename or file content changes files or behaviour on the server | Server-generated storage names, client names kept only as labels; allow-listed file types; validation before anything is stored; a terminal status cannot change | Nothing known, other than the pickle limitation below |
+| **R**epudiation | A user denies having submitted an evaluation | Each evaluation has a random ID, a creation time, the filenames and the task; the server log records diagnostics | No user accounts, so there is no per-user audit trail (section 16) |
+| **I**nformation disclosure | An error or a response reveals a path, a trace or another user's results | One error format with no traces or paths; unexpected errors give a generic message; file paths are never returned; random IDs; the child process does not see server secrets | With authentication off, anyone who knows an ID can read that result |
+| **D**enial of service | A huge file, or a model that never ends | Size limits enforced while the upload streams in; time and memory limits on the evaluation; validation before execution; the model check runs in its own process | No limit on how many requests one caller can send (section 16) |
+| **E**levation of privilege | Code inside an uploaded model gains the server's rights | Models are never loaded in the server: a child process with a minimal environment, a time limit and a memory limit | The child process still runs as the server's user: this is process isolation, not a sandbox (DEF-06, accepted) |
 
 ---
 
@@ -356,5 +393,36 @@ The following are outside initial scope but may be considered later:
 - fairness metrics;
 - explainability modules;
 - comparison of multiple models.
+
+---
+
+
+---
+
+## 15. Risks and Mitigations
+
+| Risk | Mitigation | Status |
+|---|---|---|
+| An uploaded model runs arbitrary code when it is opened (pickle) | Validate before executing; open it only in a child process with a minimal environment, a time limit and a memory limit | Reduced; the remainder is DEF-06, accepted |
+| An evaluation uses too much time or memory | Upload size limits; time and memory limits on the evaluation process | Mitigated and tested (TC-04, TC-15) |
+| The system behaves differently on different operating systems | CI runs the tests on Linux and Windows; the memory limit uses `setrlimit` on Linux and a job object on Windows | Mitigated after the Windows-only import error (#44) |
+| Slow acknowledgement, because checking a model takes about 1.6 s | Spare checker processes that have already loaded the libraries, one fresh process per model | Mitigated: about 0.17 s at a normal pace |
+| Temporary files pile up or are deleted too early | A retention sweep at start-up, on a timer and after each submission; files of unfinished evaluations are kept | Mitigated and tested (TC-18) |
+| Results are lost when the server restarts | Results are kept in memory by design for the session; the store sits behind an interface so it can be replaced | Accepted (section 16) |
+
+---
+
+## 16. Open Issues
+
+Known limits that the design does not remove.
+
+1. **Isolation is a process, not a container.** A malicious model still runs with the server user's privileges (DEF-06).
+2. **Results are in memory.** They are lost when the server restarts (FR-18 asks only for the active session).
+3. **Authentication is one optional shared key.** There are no user accounts, so no per-user ownership of results.
+4. **No rate limiting.** One caller can submit many evaluations.
+5. **The memory limit is verified on Linux and Windows**, the two systems CI runs on, not on macOS.
+6. **The result download is JSON only.**
+
+Future work that would address these is listed in section 14.
 
 ---

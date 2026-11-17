@@ -4,6 +4,31 @@
 > **Deviations (as built).** Every requirement here is met; where the build made a choice the SRS left open or added to it, the deviation is recorded in the [Deviation Log](../docs/Deviation_Log.md): authentication as an optional API key (NFR-07, SEC-06: [D-05](../docs/Deviation_Log.md#1-design-deviations)), results kept in memory for the session (FR-18: D-08), JSON download (FR-15: D-09), binary class labels other than 0/1 (FR-10: D-10), the accepted CSV format (FR-04: D-12), and plain-language metric explanations (NFR-01: D-15).
 
 
+## Document Control
+
+| | |
+|---|---|
+| **Document** | Software Requirements Specification (SRS) |
+| **Project** | Web-Based ML Model Evaluator (Software Engineering mini-project) |
+| **Version** | 1.3 (as built) |
+| **Date** | 17 November 2026 |
+| **Authors** | Akshya Sivagami (first version), Adyanth Mallur (revisions) |
+| **Team** | Adyanth Mallur, Akash MP, Akshath Patil, Akshya Sivagami |
+| **Structure follows** | IEEE Std 830-1998, Recommended Practice for Software Requirements Specifications |
+| **Repository path** | `deliverable-1/01_SRS.md` |
+| **Related documents** | [Test Plan](02_Test_Plan.md), [Architecture and Design](03_Architecture_and_Design.md), [Product Backlog](../planning/Product_Backlog.md), [Deviation Log](../docs/Deviation_Log.md) |
+
+## Revision History
+
+| Rev | Date | Author | What changed | Commits |
+|---|---|---|---|---|
+| 1.0 | 26 Sep 2026 | Akshya | First version: introduction, overall description, FR-01 to FR-18, NFR-01 to NFR-10, security objectives SO-01 to SO-03 and requirements SEC-01 to SEC-08, use cases UC-01 to UC-03 and the use case diagram | `0d9a260` (renamed to `.md` in `4abe8a3`) |
+| 1.1 | 27 Sep 2026 | Adyanth | Review for Deliverable 1: acronyms defined and the user role named (Evaluator/User); a table mapping the diagram's use cases to UC-01 to UC-03; FR-19 and FR-20 added (unknown evaluation ID, download before completion) | `6ac2319`, `13a9944` |
+| 1.2 | 11 Nov 2026 | Adyanth | As-built note linking the Deviation Log; final audit fixes | `ce6f40e`, `9f5ecf4` |
+| 1.3 | 17 Nov 2026 | Adyanth | Document control, this revision history, 1.4 References and 1.5 Document Overview | this revision |
+
+The requirements themselves are unchanged since revision 1.1: every FR, NFR and SEC requirement is met (see the [System Validation Report](../docs/System_Validation_Report.md)).
+
 ## 1. Introduction
 
 ### 1.1 Purpose
@@ -48,6 +73,20 @@ The system does not train models, perform automated model selection, or make a p
 | CSV | Comma-Separated Values file |
 | MAE, MSE, RMSE | Mean Absolute Error, Mean Squared Error, Root Mean Squared Error |
 | R² | Coefficient of determination |
+
+### 1.4 References
+
+- IEEE Std 830-1998, *IEEE Recommended Practice for Software Requirements Specifications* (the structure of this document).
+- [Software Test Plan](02_Test_Plan.md): how each requirement here is verified (traceability matrix, section 7).
+- [Software Architecture & Design Specification](03_Architecture_and_Design.md): how the requirements are realised; the API is in section 10 and the errors in section 11.
+- [Product Backlog](../planning/Product_Backlog.md): every FR and NFR mapped to backlog items and test cases.
+- [Deviation Log](../docs/Deviation_Log.md): where what was built differs from this document.
+
+### 1.5 Document Overview
+
+Section 2 describes the product in general terms: its perspective, functions, users, environment, constraints and assumptions. Section 3 holds the specific requirements: functional requirements (3.1, `FR-`), non-functional requirements with a measurable acceptance criterion each (3.2, `NFR-`) and the external interfaces (3.3). Section 4 states the security objectives (`SO-`) and security requirements (`SEC-`). Section 5 gives the use cases (`UC-`) and the use case diagram.
+
+Requirement identifiers are stable. The Test Plan, the Architecture document, the Product Backlog and the automated tests all refer to them.
 
 ---
 
