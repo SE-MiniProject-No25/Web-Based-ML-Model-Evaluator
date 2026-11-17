@@ -16,6 +16,7 @@ Where every project document is. The reports in this folder are generated from t
 
 | Document | What it contains |
 |---|---|
+| [Requirement-to-code traceability](TRACEABILITY.md) | From each backlog item to its requirements, the pull request that built it, its source files, its tests and its Test Plan cases |
 | [Deviation Log](Deviation_Log.md) | Every difference between the plan and what was built, mapped to the documents, with a one-page summary for the demo |
 
 ## Elsewhere in the repository
@@ -23,7 +24,7 @@ Where every project document is. The reports in this folder are generated from t
 | Document | Where |
 |---|---|
 | Software Requirements Specification | [`deliverable-1/01_SRS.md`](../deliverable-1/01_SRS.md) |
-| Test Plan (test cases updated in Part 3) | [`deliverable-1/02_Test_Plan.md`](../deliverable-1/02_Test_Plan.md) |
+| Test Plan: Revision History, the test cases updated in Part 3, and the Test Execution Record (section 10) | [`deliverable-1/02_Test_Plan.md`](../deliverable-1/02_Test_Plan.md) |
 | Architecture and Design Specification, UML | [`deliverable-1/03_Architecture_and_Design.md`](../deliverable-1/03_Architecture_and_Design.md), [`deliverable-1/uml/`](../deliverable-1/uml/) |
 | Usability test report (US-22) | [`deliverable-1/usability-testing/`](../deliverable-1/usability-testing/) |
 | Product Backlog, Sprint Plan (with Sprint 3 and the freeze), burndown | [`planning/`](../planning/) |

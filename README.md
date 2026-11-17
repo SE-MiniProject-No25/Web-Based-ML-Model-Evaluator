@@ -23,7 +23,7 @@ Web-Based-ML-Model-Evaluator/
 ├── frontend/           # React + Vite web UI
 ├── .github/            # CI workflow and pull request template
 │
-├── docs/               # test reports and the deviation log (see docs/README.md)
+├── docs/               # test reports, traceability and the deviation log (see docs/README.md)
 ├── e2e/                # browser tests of the whole workflow
 │
 ├── planning/
@@ -61,6 +61,7 @@ Sprints: Sprint 1 19–23 Oct, Sprint 2 26–30 Oct, Sprint 3 1–6 Nov 2026. Th
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 - [Demo Script](planning/Demo_Script.md) — the 5-minute demo, who presents what, and backup screenshots.
 - [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3).
+- [Requirement-to-code traceability](docs/TRACEABILITY.md) — each backlog item to its requirements, pull request, source files, tests and Test Plan cases.
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
 ## Demo
