@@ -90,7 +90,7 @@ Akshya's load is deliberately lighter because she produced Deliverable 1; the Te
 | Spill-over from Sprint 2 | US-03, US-04, US-05, EN-03, EN-07, EN-08 (Adyanth) · US-09, US-10, US-11 (Akash) · US-15 to US-18 (Akshath) · US-21, US-22 (Akshya) |
 | Part-3 testing and reports | Test reports in `docs/` (#60, #63), TEST-01 frontend tests (#92), TEST-03 Windows CI and coverage thresholds (#88), TEST-07 browser tests (#93), reports regenerated on the final code (#94) |
 | Debugging and fixes from testing | TEST-11 exploratory debugging, DEF-11 to DEF-17 (#86) · TEST-04 acknowledgement time (#91) · TEST-05 retention timer (#89) · TEST-06 git line endings (#87) · TEST-10 Windows memory limit (#90) · metric explanations (#66) |
-| Documents | DOC-01 [Deviation Log](../docs/Deviation_Log.md) · DOC-02 this section and the freeze · DOC-03 [2-minute video](../deliverable-2/Sprint2_Demo.mp4) (#85) · DOC-04 [checklist audit](../docs/Evaluator_Checklist_Audit.md) · DOC-05 [docs index](../docs/README.md) · DOC-06 [viva preparation](../docs/Viva_Prep.md) |
+| Documents | DOC-01 [Deviation Log](../docs/Deviation_Log.md) · DOC-02 this section and the freeze · DOC-03 [Sprint 2 video](../deliverable-2/Sprint2_Demo.mp4) (#85) · DOC-05 [docs index](../docs/README.md) (DOC-04 and DOC-06 were internal preparation notes and are not part of the submission) |
 
 On GitHub, the Sprint 2 stories stay in the **Sprint 2** milestone, where they were planned (they were finished in this sprint); the **Sprint 3** milestone holds the Part-3 testing, debugging and documentation issues.
 
@@ -99,8 +99,7 @@ On GitHub, the Sprint 2 stories stay in the **Sprint 2** milestone, where they w
 | | |
 |---|---|
 | **Frozen** | 11 Nov 2026, at the merge of the final documentation pull request |
-| **Tag** | `v1.0` on `main`, with release notes on GitHub |
-| **After the freeze** | Only bug fixes, each through a pull request with one approving review (branch protection on `main`) |
+| **After the freeze** | Meant to be bug fixes only, each through a pull request. Three commits did not follow this: see P-05 in the [Deviation Log](../docs/Deviation_Log.md) |
 
 ---
 

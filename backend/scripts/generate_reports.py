@@ -365,7 +365,7 @@ def unit_report(env, all_cases, unit_cov) -> str:
     out.append("No unit test failed.\n" if not failed else "Failed: " + ", ".join(f"`{c['name']}`" for c in failed) + "\n")
     if skipped:
         out.append("Skipped:\n\n" + "\n".join(f"- `{c['file']}::{c['name']}`: {c['note'] or 'skipped'}" for c in skipped) + "\n")
-        out.append("These need the POSIX `resource` module, so they only run on Linux and macOS (they run in CI).\n")
+        out.append("These need the POSIX `resource` module, so they only run on Linux (they run in CI).\n")
     out.append(
         "## 5. What the unit tests cover well\n\n"
         "- **Security-relevant code paths:** a hung or crashing model-inspection child, a worker killed without "
@@ -381,7 +381,7 @@ def unit_report(env, all_cases, unit_cov) -> str:
         "## 6. Known gaps\n\n"
         "- This report covers the backend. The frontend's own tests (Vitest) are summarised at the top of this "
         "report, and the browser tests (`e2e/`) in the System Validation Report.\n"
-        "- The memory limit is exercised on Linux, macOS and Windows, but only Linux and Windows run in CI.\n"
+        "- The memory limit is exercised on Linux and Windows, the two systems CI runs on.\n"
         "- Lines that remain uncovered are listed per file in the Code Coverage Report, each with a reason.\n"
     )
     return "\n".join(out)
@@ -489,20 +489,15 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
     out = [header("System Validation Report", env), scope_note()]
     out.append(
         "Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases, TC-01 to TC-25) against the "
-        "complete application. It replaces `planning/Test_Report.md` (3 November), which was written before "
-        "authentication, safe error responses, secure storage, the determinism tests and the usability test were merged.\n"
+        "complete application.\n"
     )
     out.append(
         "## 1. Summary\n\n| Result | Cases |\n|---|---|\n"
         f"| **Pass** | **{len(passed)} of 25**: {', '.join(passed)}. 24 are automated; TC-21 is a manual test with one participant |\n"
         f"| **Fail** | {len(failed)}{(': ' + ', '.join(failed)) if failed else ''} |\n"
-        "| Of those, with a limitation | "
-        "TC-15 (memory limit not enforced on Windows), TC-18 (cleanup runs on the next submission, not on a timer), "
-        "TC-21 (see section 5) |\n\n"
+        "| Of those, with a limitation | TC-21 (see section 5) |\n\n"
         f"The automated suite has {k['total']} tests: {k['passed']} passed, {k['failed']} failed, {k['skipped']} skipped "
-        "(the memory-limit tests only run on Linux, in CI). Since the previous report, authentication (TC-17) "
-        "and cleanup of temporary files (TC-18) have been built and now pass, so the two failures recorded then "
-        "are closed.\n"
+        "(the memory-limit tests only run on Linux, in CI).\n"
     )
     case_rows = {
         "TC-01": "Upload model", "TC-02": "Upload dataset", "TC-03": "Unsupported file", "TC-04": "Size limit boundary",
@@ -591,7 +586,7 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "| File validation | Pass: unsupported and malformed files rejected before execution (TC-03, TC-14, TC-23) |\n"
         "| Size limits | Pass (TC-04) |\n| Path handling | Pass (TC-13) |\n"
         "| Input validation | Pass: task type and target checked on the server (TC-05, TC-06) |\n"
-        "| Resource protection | Pass: time and memory limits on Linux, macOS and Windows (TC-15) |\n"
+        "| Resource protection | Pass: time and memory limits on Linux and Windows (TC-15) |\n"
         "| Error disclosure | Pass (TC-16): standard error format everywhere, including unknown URLs and unexpected exceptions |\n"
         "| Temporary data | Pass: removed on a timer, never while in use (TC-18) |\n"
         "| Authentication | Pass (TC-17); off by default, so a deployment must switch it on |\n\n"

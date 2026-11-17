@@ -2,24 +2,9 @@
 
 | | |
 |---|---|
-| **[Sprint2_Demo.mp4](Sprint2_Demo.mp4)** | A 2-minute screen recording of the working product, made in a real browser (2:00, 1280×720, 7 MB, no sound so it can be narrated live or recorded over) |
+| **[Sprint2_Demo.mp4](Sprint2_Demo.mp4)** | A screen recording of the working product (1:32, 1916×874, 79 MB, with an audio track) |
 | [demo-inputs/](demo-inputs/) | Six good models and datasets and nine bad inputs, each verified against the real application. See its README for what each one shows |
-| [video/record_demo.py](video/record_demo.py) | The script that recorded the video, so the take can be repeated after a change |
-
-## What the video shows
-
-| Time | Scene |
-|---|---|
-| 0:00 | Upload a churn model and its CSV through the Open window, pick the task and target column from the menus, review and run |
-| 0:22 | The target column was a feature by mistake: the evaluation fails and names the missing and unused columns |
-| 0:27 | Back to configuration, pick the right column, run again |
-| 0:36 | The results: status, the metrics table with a plain-language explanation of each metric, and the chart |
-| 0:46 | **Download Results**, then the downloaded JSON file opened in the browser |
-| 0:51 | A different kind of model: house-price regression, with MAE, MSE, RMSE and R² |
-| 1:15 | A corrupt model file is rejected |
-| 1:25 | A malformed CSV (ragged rows) is rejected before anything runs, with the message next to the field |
-| 1:41 | A `.txt` file is refused as soon as it is chosen |
-| 1:47 | The interactive API documentation at `/docs`, with the fields of `POST /api/evaluations` |
+| [video/record_demo.py](video/record_demo.py) | The script that recorded an earlier, silent 2:00 automated take of the video (the video in this folder is a later recording) |
 
 ## Recording it again
 

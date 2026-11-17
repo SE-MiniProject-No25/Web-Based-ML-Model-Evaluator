@@ -62,7 +62,7 @@ Skipped:
 
 - `test_worker.py::test_a_positive_memory_limit_is_applied_on_posix`: memory limits need the POSIX resource module
 
-These need the POSIX `resource` module, so they only run on Linux and macOS (they run in CI).
+These need the POSIX `resource` module, so they only run on Linux (they run in CI).
 
 ## 5. What the unit tests cover well
 
@@ -73,5 +73,5 @@ These need the POSIX `resource` module, so they only run on Linux and macOS (the
 ## 6. Known gaps
 
 - This report covers the backend. The frontend's own tests (Vitest) are summarised at the top of this report, and the browser tests (`e2e/`) in the System Validation Report.
-- The memory limit is exercised on Linux, macOS and Windows, but only Linux and Windows run in CI.
+- The memory limit is exercised on Linux and Windows, the two systems CI runs on.
 - Lines that remain uncovered are listed per file in the Code Coverage Report, each with a reason.

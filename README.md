@@ -23,7 +23,7 @@ Web-Based-ML-Model-Evaluator/
 ├── frontend/           # React + Vite web UI
 ├── .github/            # CI workflow and pull request template
 │
-├── docs/               # test reports, deviation log, checklist audit, viva prep (see docs/README.md)
+├── docs/               # test reports and the deviation log (see docs/README.md)
 ├── e2e/                # browser tests of the whole workflow
 │
 ├── planning/
@@ -43,7 +43,7 @@ Web-Based-ML-Model-Evaluator/
         └── sequence_validation.puml / sequence_validation.png
 ```
 
-`deliverable-2/` holds the 2-minute Sprint 2 video, its recording script and the demo inputs.
+`deliverable-2/` holds the Sprint 2 demo video, the demo inputs and the script that recorded an earlier take of the video.
 
 The UML diagrams are written in [PlantUML](https://plantuml.com). After editing a `.puml` source, regenerate its image, for example with the PlantUML extension for VS Code or with:
 
@@ -53,19 +53,19 @@ java -jar plantuml.jar -tpng deliverable-1/uml/component.puml
 
 ## Project Planning
 
-> **Development is frozen** as of 11 Nov 2026 at tag [`v1.0`](https://github.com/SE-MiniProject-No25/Web-Based-ML-Model-Evaluator/releases/tag/v1.0). After the freeze only bug fixes are merged, each through a reviewed pull request. All documents are indexed in [`docs/README.md`](docs/README.md); differences from the original design are in the [Deviation Log](docs/Deviation_Log.md).
+> **Development was frozen** on 11 Nov 2026. All documents are indexed in [`docs/README.md`](docs/README.md); differences from the original design, including the few changes made after the freeze, are in the [Deviation Log](docs/Deviation_Log.md).
 
 Sprints: Sprint 1 19–23 Oct, Sprint 2 26–30 Oct, Sprint 3 1–6 Nov 2026. The sprints overran and were completed on 28 Oct, 10 Nov and 11 Nov (freeze), with Sprint 3 finishing the spill-over and the Part-3 testing ([Sprint Plan §2a](planning/Sprint_Plan.md#2a-what-actually-happened-and-sprint-3)):
 
 - [Product Backlog](planning/Product_Backlog.md) — user stories with acceptance criteria, mapped to every FR, NFR and test case.
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 - [Demo Script](planning/Demo_Script.md) — the 5-minute demo, who presents what, and backup screenshots.
-- [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3). The earlier Sprint 2 [Test Report](planning/Test_Report.md) is superseded.
+- [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3).
 - [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
 
 ## Demo
 
-- **[Sprint 2 demo video](deliverable-2/Sprint2_Demo.mp4)** (2 minutes): a screen recording of the working product end to end, with [what each part shows](deliverable-2/README.md#what-the-video-shows). The earlier [Sprint 1 video](deliverable-1/Sprint1_Demo.mp4) shows the first working version.
+- **[Sprint 2 demo video](deliverable-2/Sprint2_Demo.mp4)** (about 1½ minutes): a screen recording of the working product end to end. The earlier [Sprint 1 video](deliverable-1/Sprint1_Demo.mp4) shows the first working version.
 - **[Demo inputs](deliverable-2/demo-inputs/)**: six good models and datasets and nine bad inputs to try in the interface, with what each one shows. The [demo script](planning/Demo_Script.md) is the 5-minute live version.
 
 ## Code Map
@@ -127,7 +127,7 @@ Limits and switches (allowed extensions, upload size, evaluation time and memory
 
 ### Supported model format
 
-scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded in a separate child process with a sanitized environment, after validation. The evaluation run is stopped at the configured time limit and at the configured memory limit (on Linux and macOS the worker limits its own address space; on Windows the server puts it in a job object with a memory limit). This is process isolation, not a container sandbox.
+scikit-learn models saved with `joblib` (`.joblib` or `.pkl`); datasets are `.csv`. **Known limitation:** loading a pickle runs code contained in the file, so models are only ever loaded in a separate child process with a sanitized environment, after validation. The evaluation run is stopped at the configured time limit and at the configured memory limit (on Linux the worker limits its own address space; on Windows the server puts it in a job object with a memory limit). This is process isolation, not a container sandbox.
 
 ### Contributing
 

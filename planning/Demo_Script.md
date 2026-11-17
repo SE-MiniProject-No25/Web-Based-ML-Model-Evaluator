@@ -88,7 +88,7 @@ Click *New evaluation*. Choose `classification/model.joblib` and **`negative/inc
 
 ![Failed evaluation](demo/05-failed-evaluation.jpg)
 
-*Say:* "This input looked fine, so it was accepted, but it cannot work with this model. The evaluation fails with a specific reason that names the columns, and not a crash. A model that runs too long or uses too much memory is stopped the same way (time limit on every system; memory limit on Linux and macOS)."
+*Say:* "This input looked fine, so it was accepted, but it cannot work with this model. The evaluation fails with a specific reason that names the columns, and not a crash. A model that runs too long or uses too much memory is stopped the same way (time limit on every system; memory limit on Linux and Windows)."
 
 ### Part 5 – A security rejection (Akash, 50 s)
 Click *New evaluation*. Choose **`negative/malformed_model.joblib`** and `classification/data.csv`, Classification / `label`, and run it. *Expect:* **"The model file could not be loaded or is corrupted."** on the review step.
@@ -104,9 +104,9 @@ curl -s -X POST http://127.0.0.1:8000/api/evaluations -F model=@backend/tests/fi
 *Expect* `415 UNSUPPORTED_FILE_TYPE`. And a file named `../../evil.csv` is stored under a random name, so it cannot reach outside the storage folder.
 
 ### Part 6 – Wrap-up (Adyanth, 30 s)
-*Say:* "We ran all 25 test cases in the Test Plan and they pass: 24 automated and one manual usability test. The automated suite has 288 tests with 98% line coverage. Known limitations are written down: the memory limit is only enforced on Linux and macOS, uploaded files are cleaned up when a new evaluation is submitted rather than on a timer, and the interface has no automated tests."
+*Say:* "We ran all 25 test cases in the Test Plan and they pass: 24 automated and one manual usability test. The backend has 341 automated tests (one runs only on Linux), the interface has 28 tests of its own, and browser tests run the whole workflow. Backend line coverage is 97.6%. Known limitations are written down: models are isolated in a separate process, not a container; results are kept in memory for the session; the download is JSON only; and the usability test had one participant."
 
-Do not claim anything that is not in the [System Validation Report](../docs/System_Validation_Report.md); for example, cleanup of uploads runs when a new evaluation is submitted, not on a timer, and the usability test had one participant.
+Do not claim anything that is not in the [System Validation Report](../docs/System_Validation_Report.md); for example, the usability test had one participant.
 
 ## 4. If something goes wrong
 
@@ -116,15 +116,3 @@ Do not claim anything that is not in the [System Validation Report](../docs/Syst
 | Port 8000 is already in use | Close the old backend (`netstat -ano \| findstr :8000`, then `taskkill /PID <pid> /F` if it is yours) or start `uvicorn app.main:app --port 8001` and change the proxy line in `frontend/vite.config.js` temporarily (do not commit it). Do this *before* the demo. |
 | The page shows "Could not reach the server" or `HTTP 502` | The backend is not running. Start it again; the page keeps your selections. |
 | A result differs from this script | Stop, show the screenshots, and say so honestly. Then run `python scripts/demo_check.py` afterwards to find out why. |
-
-## 5. Rehearsal record
-
-The whole team rehearses once, with the script above and a stopwatch. Fill this in afterwards.
-
-**Pre-flight check on the frozen code:** 11 Nov 2026, branch `docs/sprint3-final-docs` (all Sprint 3 work combined), `python scripts/demo_check.py`: `9 of 9 demo scenarios behave as scripted`. Run it again on `main` on the day.
-
-| Date | Who took part | Total time | Problems found and fixed |
-|---|---|---|---|
-| | | | |
-
-Each person confirms they know their part: Adyanth ☐  Akash ☐  Akshath ☐  Akshya ☐

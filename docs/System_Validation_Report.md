@@ -17,7 +17,7 @@
 | `frontend/src/api.js` | 91.1% | 87.1% |
 | `frontend/src/metrics.js` | 100.0% | 100.0% |
 
-Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases, TC-01 to TC-25) against the complete application. It replaces `planning/Test_Report.md` (3 November), which was written before authentication, safe error responses, secure storage, the determinism tests and the usability test were merged.
+Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases, TC-01 to TC-25) against the complete application.
 
 ## 1. Summary
 
@@ -25,9 +25,9 @@ Result of executing the [Test Plan](../deliverable-1/02_Test_Plan.md) (25 cases,
 |---|---|
 | **Pass** | **25 of 25**: TC-01, TC-02, TC-03, TC-04, TC-05, TC-06, TC-07, TC-08, TC-09, TC-10, TC-11, TC-12, TC-13, TC-14, TC-15, TC-16, TC-17, TC-18, TC-19, TC-20, TC-21, TC-22, TC-23, TC-24, TC-25. 24 are automated; TC-21 is a manual test with one participant |
 | **Fail** | 0 |
-| Of those, with a limitation | TC-15 (memory limit not enforced on Windows), TC-18 (cleanup runs on the next submission, not on a timer), TC-21 (see section 5) |
+| Of those, with a limitation | TC-21 (see section 5) |
 
-The automated suite has 341 tests: 340 passed, 0 failed, 1 skipped (the memory-limit tests only run on Linux, in CI). Since the previous report, authentication (TC-17) and cleanup of temporary files (TC-18) have been built and now pass, so the two failures recorded then are closed.
+The automated suite has 341 tests: 340 passed, 0 failed, 1 skipped (the memory-limit tests only run on Linux, in CI).
 
 ## 2. Results by test case
 
@@ -108,7 +108,7 @@ Run them with `python -m pytest e2e` (see the README). The component tests in `f
 | Size limits | Pass (TC-04) |
 | Path handling | Pass (TC-13) |
 | Input validation | Pass: task type and target checked on the server (TC-05, TC-06) |
-| Resource protection | Pass: time and memory limits on Linux, macOS and Windows (TC-15) |
+| Resource protection | Pass: time and memory limits on Linux and Windows (TC-15) |
 | Error disclosure | Pass (TC-16): standard error format everywhere, including unknown URLs and unexpected exceptions |
 | Temporary data | Pass: removed on a timer, never while in use (TC-18) |
 | Authentication | Pass (TC-17); off by default, so a deployment must switch it on |
