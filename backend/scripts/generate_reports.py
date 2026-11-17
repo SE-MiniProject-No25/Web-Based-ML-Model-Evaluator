@@ -640,7 +640,9 @@ def validation_report(env, all_cases, cov_all, ack_times) -> str:
         "updated to match what was built. The Test Plan's [Revision History](../deliverable-1/02_Test_Plan.md#revision-history) "
         "lists the revisions, and the [Deviation Log](Deviation_Log.md#2a-testing-deviations-t) gives the reason for each "
         "change (T-01 to T-12). [Section 10](../deliverable-1/02_Test_Plan.md#10-test-execution-record) of the Test Plan "
-        "records the result of every case, and section 9 links each case to its automated tests.\n"
+        "records the result of every case, and section 9 links each case to its automated tests. "
+        "[Test Case Changes](Test_Case_Changes.md) shows the original (revision 1.1) and the updated version of every "
+        "case side by side.\n"
     )
     return "\n".join(out)
 

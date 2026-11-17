@@ -8,7 +8,10 @@
 | | |
 |---|---|
 | **Document** | Software Test Plan |
-| **Test plan identifier** | WBMLE-TP, revision 1.5 |
+| **Test plan identifier** | WBMLE-TP |
+| **Version** | **1.5, updated (as built)**: this document |
+| **Original version** | **1.1, as submitted for Deliverable 1** (27 Sep 2026): [02_Test_Plan_v1.1_Deliverable1.md](02_Test_Plan_v1.1_Deliverable1.md), kept unchanged |
+| **Comparison** | every test case, original beside updated: [Test Case Changes](../docs/Test_Case_Changes.md) |
 | **Project** | Web-Based ML Model Evaluator (Software Engineering mini-project) |
 | **Date** | 17 November 2026 |
 | **Authors** | Akshya Sivagami (first version), Adyanth Mallur (revisions) |
@@ -28,7 +31,7 @@
 | 1.4 | 11 Nov 2026 | Adyanth | TC-19 measured one second apart, as one user would (T-09); results linked to the System Validation Report | `4e1590d`, `9f5ecf4` |
 | 1.5 | 17 Nov 2026 | Adyanth | Document control, revision history, section 10 (test execution record), sections 11 to 14 (responsibilities, schedule, suspension and resumption criteria, test metrics) and the testing deviations T-01 to T-12 | this revision |
 
-The revision numbers were assigned afterwards from the git history, which is the authoritative record: `git log -p -- deliverable-1/02_Test_Plan.md`. No case was removed. Three were added (rev 1.1) and all 25 were reworded at least once.
+Revision 1.1 is kept unchanged as [02_Test_Plan_v1.1_Deliverable1.md](02_Test_Plan_v1.1_Deliverable1.md), and [Test Case Changes](../docs/Test_Case_Changes.md) shows each of the 25 cases in both versions. The revision numbers were assigned afterwards from the git history, which is the authoritative record: `git log -p -- deliverable-1/02_Test_Plan.md`. No case was removed. Three were added (rev 1.1) and all 25 were reworded at least once.
 
 
 ## 1. Introduction

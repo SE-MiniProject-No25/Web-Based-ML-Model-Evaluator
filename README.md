@@ -33,7 +33,8 @@ Web-Based-ML-Model-Evaluator/
 │
 └── deliverable-1/
     ├── 01_SRS.md
-    ├── 02_Test_Plan.md
+    ├── 02_Test_Plan.md                       (updated, version 1.5)
+    ├── 02_Test_Plan_v1.1_Deliverable1.md     (original, as submitted)
     ├── 03_Architecture_and_Design.md
     │
     └── uml/
@@ -61,6 +62,7 @@ Sprints: Sprint 1 19–23 Oct, Sprint 2 26–30 Oct, Sprint 3 1–6 Nov 2026. Th
 - [Sprint Plan](planning/Sprint_Plan.md) — team roles, sprint goals, calendar, workflow and Definition of Done.
 - [Demo Script](planning/Demo_Script.md) — the 5-minute demo, who presents what, and backup screenshots.
 - [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3).
+- [Test Case Changes](docs/Test_Case_Changes.md) — the original and the updated Test Plan, each test case side by side.
 - [Requirement-to-code traceability](docs/TRACEABILITY.md) — each backlog item to its requirements, pull request, source files, tests and Test Plan cases.
 - [Sprint Burndown](planning/burndown/README.md) — planned against actual story points for the whole project, with the data behind it.
 
