@@ -26,7 +26,7 @@
 | 1.1 | 27 Sep 2026 | Adyanth | Diagram references fixed and the diagrams embedded; the components the traceability tables cite defined (API Error Handler, Authentication Middleware, Storage Lifecycle Manager); an error status for every case; unguessable evaluation IDs added as a security control; UML modelling errors corrected in three diagrams; the failed-evaluation response specified | `6ac2319`, `92128b9`, `b720624`, `70782c3` |
 | 1.2 | 3 Nov 2026 | Adyanth | API documentation: examples use random UUIDs, the download response specified | `d7d0b15` |
 | 1.3 | 11 Nov 2026 | Adyanth | As-built note linking the Deviation Log; final audit fixes | `ce6f40e`, `9f5ecf4` |
-| 1.4 | 17 Nov 2026 | Adyanth | Document control, this revision history, 6.4 Threat Analysis (STRIDE), 15 Risks and Mitigations and 16 Open Issues | this revision |
+| 1.4 | 17 Nov 2026 | Adyanth | Document control, this revision history, as-built notes in sections 8 and 9 (the two separate processes), 6.4 Threat Analysis (STRIDE), 15 Risks and Mitigations and 16 Open Issues | this revision |
 
 # Part I — Architecture Specification
 
@@ -208,6 +208,8 @@ The sequence covers upload/configuration validation, evaluation execution, metri
 
 Evaluation runs asynchronously after the `202` response: the Evaluation Service sets the status to `running`, generates predictions, and saves either the completed result or a safe error with status `failed`, while the Web UI polls the status endpoint until the evaluation reaches a terminal status. Validation failures follow the alternative flow in Section 9.
 
+**As built (two separate processes).** The Evaluation Service does not load the model in the server. After the `202` it starts a separate child process (`evaluation/worker.py`) with a clean environment, a time limit and a memory limit. The worker loads the model and the dataset and writes the predictions to a file, and the server then scores them with the Metrics Service. Failures end as `INCOMPATIBLE_INPUTS`, `RESOURCE_LIMIT_EXCEEDED` or `EVALUATION_FAILED` (section 11). See [D-02, D-03 and D-07](../docs/Deviation_Log.md#1-design-deviations).
+
 ---
 
 ## 9. Sequence Diagram — Upload Validation
@@ -219,6 +221,8 @@ Evaluation runs asynchronously after the `202` response: the Evaluation Service 
 The sequence focuses on the security-sensitive path where user-controlled files are checked before they can reach model execution.
 
 The `alt` fragment shows both outcomes: valid input is stored under a server-controlled path and handed to the Evaluation Service, while invalid input produces a safe error response and never reaches storage or model execution.
+
+**As built (the model check).** The step that checks the model is a valid model is done before the `202`, in a separate child process (`validation/model_inspector.py`) with a clean environment and a 15-second limit: the process only tries to load the model and checks that it has a `predict` method. The server itself never loads an uploaded model, either here or during the evaluation (section 8). See [D-02](../docs/Deviation_Log.md#1-design-deviations).
 
 ---
 
