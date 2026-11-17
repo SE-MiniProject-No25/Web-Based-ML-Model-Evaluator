@@ -6,7 +6,7 @@ The checklist asks that the **original test cases are updated to reflect the spr
 | Version | Revision | Date | File |
 |---|---|---|---|
 | **Original**, as submitted for Deliverable 1 | 1.1 | 27 September 2026 | [`deliverable-1/02_Test_Plan_v1.1_Deliverable1.md`](../deliverable-1/02_Test_Plan_v1.1_Deliverable1.md) (kept unchanged) |
-| **Updated**, as built after the sprints | 1.5 | 5 November 2026 | [`deliverable-1/02_Test_Plan.md`](../deliverable-1/02_Test_Plan.md) |
+| **Updated**, as built after the sprints | 1.5 | 10 November 2026 | [`deliverable-1/02_Test_Plan.md`](../deliverable-1/02_Test_Plan.md) |
 
 The Test Plan's [Revision History](../deliverable-1/02_Test_Plan.md#revision-history) lists every revision with its commits (the first, revision 1.0 of 26 September, had 22 cases; revision 1.1 added three). The reasons for each change are the testing deviations T-01 to T-12 in the [Deviation Log](../docs/Deviation_Log.md#2a-testing-deviations-t).
 
