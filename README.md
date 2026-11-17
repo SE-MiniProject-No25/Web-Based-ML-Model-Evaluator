@@ -62,7 +62,7 @@ Sprints: Sprint 1 19–23 Oct, Sprint 2 26–30 Oct, Sprint 3 1–6 Nov 2026. Th
 - [Demo Script](planning/Demo_Script.md) — the 5-minute demo, who presents what, and backup screenshots.
 - [Test reports](docs/) — [Unit Test Report](docs/Unit_Test_Report.md), [System Validation Report](docs/System_Validation_Report.md), [Code Coverage Report](docs/Code_Coverage_Report.md) and [Branch Coverage Report](docs/Branch_Coverage_Report.md) (Part 3).
 - [Requirement-to-code traceability](docs/TRACEABILITY.md) — each backlog item to its requirements, pull request, source files, tests and Test Plan cases.
-- [Sprint Burndown](planning/burndown/README.md) — burndown chart for the current sprint and how to refresh it.
+- [Sprint Burndown](planning/burndown/README.md) — planned against actual story points for the whole project, with the data behind it.
 
 ## Demo
 
